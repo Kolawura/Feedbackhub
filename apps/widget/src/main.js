@@ -1,7 +1,9 @@
+const scriptTag = document.currentScript;
+const siteId = scriptTag?.getAttribute("data-site-id");
 
 //  CREATE THE <STYLE></STYLE>
 
-const style = document.createElement('style');
+const style = document.createElement("style");
 style.textContent = `
   .feedback-button {
     position: fixed;
@@ -146,78 +148,114 @@ style.textContent = `
     padding: 8px;
     resize: vertical;
   }
+    .validating-error-message {
+    color: #f00;
+    font-size: 16px;
+    font-weight: 600;
+    text-align: center;
+    margin: 0;
+    padding: 16px;
+    background-color: rgba(255, 0, 0, 0.1);
+    border-radius: 8px;
+    border: 1px solid #f00;
+    box-shadow: 0 4px 12px rgba(255, 0, 0, 0.2);
+    animation: shake 0.5s ease-in-out;
+  }
+  @keyframes shake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    50% { transform: translateX(5px); }
+    75% { transform: translateX(-5px); }
+    100% { transform: translateX(0); }
+  }
 `;
 document.head.appendChild(style);
 
-document.addEventListener('DOMContentLoaded', () => {
-  const button = document.createElement('button');
-  button.className = 'feedback-button';
-  button.textContent = 'Feedback';
+document.addEventListener("DOMContentLoaded", () => {
+  const button = document.createElement("button");
+  button.className = "feedback-button";
+  button.textContent = "Feedback";
   document.body.appendChild(button);
 
-   // Create the modal
-  const modalContainer = document.createElement('div');
-  modalContainer.className = 'feedback-modal-container';
+  // Create the modal
+  const modalContainer = document.createElement("div");
+  modalContainer.className = "feedback-modal-container";
   document.body.appendChild(modalContainer);
-  const modal = document.createElement('div');
-  modal.className = 'feedback-modal';
+  const modal = document.createElement("div");
+  modal.className = "feedback-modal";
 
-button.addEventListener('click', () => {
-    modalContainer.style.display = 'flex';
- 
-// CHECK IF SITE IS REGISTERED
-  const scriptTag = document.currentScript;
-  const siteId = scriptTag?.getAttribute('data-site-id');
-  modal.innerHTML = `<p class="modal-validating">Validating...</p>`;
-  modalContainer.appendChild(modal);
+  button.addEventListener("click", () => {
+    modalContainer.style.display = "flex";
 
-  fetch(`https://your-api.com/validate-site?siteId=${siteId}`)
-  .then(res => {
-    if (!res.ok) throw new Error('Invalid site ID');
+    modal.innerHTML = `<p class="modal-validating">Validating...</p>`;
+    modalContainer.appendChild(modal);
 
-  modal.innerHTML = `
-    <h3>Feedback Modal</h3>
-    <form id="feedback-form">
-    <input type="text" placeholder="Your name..." />
-    <input type="email" placeholder="Your email..." />
-    <textarea placeholder="Your feedback..."></textarea>
-    <button class="submit-feedback">Submit</button>
-    </form>
-    <p>We value your feedback!</p>
-    <p>For more information, visit our <a href="https://example.com/about" target="_blank">About</a>.</p>   
-    <button class="close-modal">Close</button>
-  `;
+    // CHECK IF SITE IS REGISTERED
 
-  modal.querySelector('.close-modal').addEventListener('click', () => {
-    modalContainer.style.display = 'none';
+    // SET A 5s TIMEOUT FOR THE REQUEST
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+
+    // fetch(`https://your-api.com/validate-site?siteId=${siteId}`, {
+    //   signal: controller.signal,
+    // })
+    //   .then((res) => {
+    //     clearTimeout(timeout);
+    //     if (!res.ok) throw new Error("Invalid site ID");
+    //     return res.json();
+    //   })
+    //   .then((res) => {
+    //     console.log(res);
+    modal.innerHTML = `
+            <h3>Feedback Modal</h3>
+            <form id="feedback-form">
+            <input type="text" placeholder="Your name..." />
+            <input type="email" placeholder="Your email..." />
+            <textarea placeholder="Your feedback..."></textarea>
+            <button class="submit-feedback">Submit</button>
+            </form>
+            <p>We value your feedback!</p>
+            <p>For more information, visit our <a href="https://example.com/about" target="_blank">About</a>.</p>   
+            <button class="close-modal">Close</button>
+          `;
+
+    modal.querySelector(".close-modal").addEventListener("click", () => {
+      modalContainer.style.display = "none";
+    });
+
+    modal.querySelector("button").onclick = () => {
+      const Name = modal.querySelector('input[type="text"]').value;
+      const Email = modal.querySelector('input[type="email"]').value;
+      const Feedback = modal.querySelector("textarea").value;
+      if (Feedback) {
+        fetch("https://your-api.com/feedback", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: Name,
+            email: Email,
+            feedback: Feedback,
+            siteId: siteId,
+          }),
+        }).then(() => {
+          modal.innerHTML = "<p >Thanks for your feedback!</p>";
+          setTimeout(() => {
+            modalContainer.style.display = "none";
+          }, 2000);
+        });
+      }
+    };
+    // })
+    // .catch((err) => {
+    //   clearTimeout(timeout); // CLEAR TIMEOUT
+    //   const message =
+    //     err.name === "AbortError"
+    //       ? "Request timed out. Please check your internet connection."
+    //       : err.message === "Invalid site ID"
+    //       ? "Widget not configured properly. Please contact the site admin."
+    //       : "Network error. Please try again later.";
+    //   modal.innerHTML = `<p class="validating-error-message">${message}</p>`;
+    //   console.error("FeedbackHub validation error:", err);
+    // });
   });
-
-modal.querySelector('button').onclick = () => {
-    const Name = modal.querySelector('input[type="text"]').value;
-    const Email = modal.querySelector('input[type="email"]').value;
-    const Feedback = modal.querySelector('textarea').value;
-    if (Feedback) {
-    fetch('https://your-api.com/feedback', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: Name,
-        email: Email,
-        feedback: Feedback,
-        siteId: siteId,
-      }),
-}).then(() => {
-    modal.innerHTML = '<p >Thanks for your feedback!</p>';
-  });
-    }
-};
-
 });
-
- })
-  .catch(err => {
-  const message = err.message === 'Invalid site ID' ? 'Widget not configured properly. Please contact the site admin.' : 'Network error';
-  modal.innerHTML = `<p style="color:red;">${message}</p>`;
-  });
-
-   });
