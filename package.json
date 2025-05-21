@@ -1,0 +1,13 @@
+{
+  "name": "feedbackhub",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+  "dev:dashboard": "cd apps/dashboard && npm run dev",
+  "dev:widget": "cd apps/widget && npm run dev"
+},
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
