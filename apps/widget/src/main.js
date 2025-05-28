@@ -110,7 +110,7 @@ style.textContent = `
     background-color: #f71111;
   }
   .feedback-modal button.close-modal:hover {
-    background-color: #f70000;
+    background-color: #f00;
   }
   .feedback-modal p {
     margin: 12px 0;
