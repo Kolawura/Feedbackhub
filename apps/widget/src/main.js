@@ -1,6 +1,8 @@
 const scriptTag = document.currentScript;
 const siteId = scriptTag?.getAttribute("data-site-id");
 
+// actually ill like that the site id will be generated when an admin register the site in the frontend , then hes given the script tag with the site ID
+
 //  CREATE THE <STYLE></STYLE>
 
 const style = document.createElement("style");
@@ -172,90 +174,311 @@ style.textContent = `
 document.head.appendChild(style);
 
 document.addEventListener("DOMContentLoaded", () => {
-  const button = document.createElement("button");
-  button.className = "feedback-button";
-  button.textContent = "Feedback";
-  document.body.appendChild(button);
+  const SITE_ID = siteId || "YOUR_SITE_ID";
+  const SESSION_START_KEY = "feedbackhub-session-start";
+  const VISITOR_ID_KEY = "visitorId";
+  const GEO_CACHE_KEY = "geoData";
+  const GEO_CACHE_DURATION = 24 * 60 * 60 * 1000;
 
-  // Create the modal
-  const modalContainer = document.createElement("div");
-  modalContainer.className = "feedback-modal-container";
-  document.body.appendChild(modalContainer);
-  const modal = document.createElement("div");
-  modal.className = "feedback-modal";
+  function getOrCreateVisitorId() {
+    let visitorId = localStorage.getItem(VISITOR_ID_KEY);
+    if (!visitorId) {
+      visitorId = crypto.randomUUID();
+      localStorage.setItem(VISITOR_ID_KEY, visitorId);
+    }
+    return visitorId;
+  }
 
-  button.addEventListener("click", () => {
-    modalContainer.style.display = "flex";
+  function getSessionStart() {
+    let session = sessionStorage.getItem(SESSION_START_KEY);
+    if (!session) {
+      session = new Date().toISOString();
+      sessionStorage.setItem(SESSION_START_KEY, session);
+    }
+    return session;
+  }
 
-    modal.innerHTML = `<p class="modal-validating">Validating...</p>`;
-    modalContainer.appendChild(modal);
+  function getUserInfo() {
+    return {
+      userAgent: navigator.userAgent,
+      language: navigator.language,
+      platform: navigator.platform,
+      screenWidth: window.innerWidth,
+      screenHeight: window.innerHeight,
+      timezoneOffset: new Date().getTimezoneOffset(),
+    };
+  }
 
-    // CHECK IF SITE IS REGISTERED
+  async function getCachedLocation() {
+    const cached = localStorage.getItem(GEO_CACHE_KEY);
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached);
+        if (Date.now() - parsed.timestamp < GEO_CACHE_DURATION) {
+          return parsed.data;
+        }
+      } catch (err) {
+        console.warn("Failed to parse cached geo data:", err);
+      }
+    }
 
-    // SET A 5s TIMEOUT FOR THE REQUEST
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000);
+    try {
+      const res = await fetch("https://ipapi.co/json/");
+      const data = await res.json();
+      const geoData = {
+        ip: data.ip,
+        city: data.city,
+        region: data.region,
+        country: data.country_name,
+        postal: data.postal,
+        latitude: data.latitude,
+        longitude: data.longitude,
+        org: data.org,
+      };
+      localStorage.setItem(
+        GEO_CACHE_KEY,
+        JSON.stringify({ timestamp: Date.now(), data: geoData })
+      );
+      return geoData;
+    } catch (err) {
+      console.warn("Geolocation lookup failed:", err);
+      return null;
+    }
+  }
 
-    // fetch(`https://your-api.com/validate-site?siteId=${siteId}`, {
-    //   signal: controller.signal,
-    // })
-    //   .then((res) => {
-    //     clearTimeout(timeout);
-    //     if (!res.ok) throw new Error("Invalid site ID");
-    //     return res.json();
-    //   })
-    //   .then((res) => {
-    //     console.log(res);
-    modal.innerHTML = `
-            <h3>Feedback Modal</h3>
-            <form id="feedback-form">
-            <input type="text" placeholder="Your name..." />
-            <input type="email" placeholder="Your email..." />
-            <textarea placeholder="Your feedback..."></textarea>
-            <button class="submit-feedback">Submit</button>
-            </form>
-            <p>We value your feedback!</p>
-            <p>For more information, visit our <a href="https://example.com/about" target="_blank">About</a>.</p>   
-            <button class="close-modal">Close</button>
-          `;
+  function getFeedBackUserInfo(email = "", geo = {}) {
+    return {
+      browser: navigator.userAgent,
+      os: navigator.platform,
+      ip: geo.ip || undefined,
+      location:
+        geo.city && geo.country ? `${geo.city}, ${geo.country}` : undefined,
+      email: email || undefined,
+    };
+  }
 
-    modal.querySelector(".close-modal").addEventListener("click", () => {
-      modalContainer.style.display = "none";
+  function getPageContext() {
+    const component =
+      document.body.getAttribute("data-component") ||
+      document.documentElement.getAttribute("data-component") ||
+      "unknown";
+    return {
+      url: window.location.href,
+      title: document.title,
+      component,
+    };
+  }
+
+  const VISITOR_TRACKED_KEY = "feedbackhub-visitor-tracked";
+
+  async function trackVisitorSession() {
+    const alreadyTracked = localStorage.getItem(VISITOR_TRACKED_KEY);
+    if (alreadyTracked) return;
+
+    const visitorId = getOrCreateVisitorId();
+    const geo = await fetch("https://ipapi.co/json/")
+      .then((res) => res.json())
+      .catch(() => ({}));
+
+    const payload = {
+      siteId: SITE_ID,
+      visitorId,
+      visitTimestamp: new Date().toISOString(),
+      sessionStart: getSessionStart(),
+      page: window.location.href,
+      userInfo: getUserInfo(),
+      country: geo.country || "Unknown",
+      region: geo.region || "",
+      city: geo.city || "",
+      pagesVisited: [
+        { url: window.location.href, timestamp: new Date().toISOString() },
+      ],
+    };
+
+    try {
+      await fetch("https://your-api.com/track-visitor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      localStorage.setItem(VISITOR_TRACKED_KEY, "true");
+    } catch (err) {
+      console.error("Visitor tracking failed:", err);
+    }
+  }
+
+  function trackPageVisit(url) {
+    const visitorId = getOrCreateVisitorId();
+    const pageVisit = {
+      siteId: SITE_ID,
+      visitorId,
+      sessionStart: getSessionStart(),
+      page: url,
+      timestamp: new Date().toISOString(),
+    };
+
+    fetch("https://your-api.com/track-page-visit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(pageVisit),
+    }).catch((err) => console.error("Page visit tracking failed:", err));
+  }
+
+  function overrideHistoryMethods() {
+    const originalPushState = history.pushState;
+    history.pushState = function (...args) {
+      originalPushState.apply(this, args);
+      setTimeout(() => trackPageVisit(window.location.href), 0);
+    };
+
+    const originalReplaceState = history.replaceState;
+    history.replaceState = function (...args) {
+      originalReplaceState.apply(this, args);
+      setTimeout(() => trackPageVisit(window.location.href), 0);
+    };
+
+    window.addEventListener("popstate", () => {
+      trackPageVisit(window.location.href);
+    });
+  }
+
+  function setupFeedbackWidget() {
+    const visitorId = getOrCreateVisitorId();
+
+    const button = document.createElement("button");
+    button.className = "feedback-button";
+    button.textContent = "Feedback";
+    document.body.appendChild(button);
+
+    const modalContainer = document.createElement("div");
+    modalContainer.className = "feedback-modal-container";
+    modalContainer.style.display = "none";
+    document.body.appendChild(modalContainer);
+
+    const modal = document.createElement("div");
+    modal.className = "feedback-modal";
+
+    button.addEventListener("click", () => {
+      modalContainer.style.display = "flex";
+      modal.innerHTML = `<p class="modal-validating">Validating...</p>`;
+      modalContainer.appendChild(modal);
+
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000);
+
+      fetch(`https://your-api.com/validate-site?siteId=${SITE_ID}`, {
+        signal: controller.signal,
+      })
+        .then((res) => {
+          clearTimeout(timeout);
+          if (!res.ok) throw new Error("Invalid site ID");
+          return res.json();
+        })
+        .then(() => {
+          renderFeedbackForm();
+        })
+        .catch((err) => {
+          clearTimeout(timeout);
+          const message =
+            err.name === "AbortError"
+              ? "Request timed out. Please check your internet connection."
+              : err.message === "Invalid site ID"
+              ? "Widget not configured properly. Please contact the site admin."
+              : err.message === "Failed to fetch"
+              ? "Failed to fetch validation data. Please check your internet connection."
+              : "Network error. Please try again later.";
+          modal.innerHTML = `<p class="validating-error-message">${message}</p>`;
+          console.error("FeedbackHub validation error:", err);
+        });
     });
 
-    modal.querySelector("button").onclick = () => {
-      const Name = modal.querySelector('input[type="text"]').value;
-      const Email = modal.querySelector('input[type="email"]').value;
-      const Feedback = modal.querySelector("textarea").value;
-      if (Feedback) {
-        fetch("https://your-api.com/feedback", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name: Name,
-            email: Email,
-            feedback: Feedback,
-            siteId: siteId,
-          }),
-        }).then(() => {
-          modal.innerHTML = "<p >Thanks for your feedback!</p>";
-          setTimeout(() => {
-            modalContainer.style.display = "none";
-          }, 2000);
+    function renderFeedbackForm() {
+      modal.innerHTML = `
+        <h3>Feedback Modal</h3>
+        <form id="feedback-form" enctype="multipart/form-data">
+          <input type="text" placeholder="Your name..." id="fb-name" />
+          <input type="email" placeholder="Your email..." id="fb-email" />
+          <input type="text" placeholder="Feedback title..." id="fb-title" required />
+          <textarea placeholder="Your feedback..." id="fb-description" required></textarea>
+          <select id="fb-type">
+            <option value="other">Other</option>
+            <option value="bug">Bug</option>
+            <option value="feature">Feature</option>
+          </select>
+          <input type="file" accept="image/*" id="fb-screenshot" />
+          <button type="submit" class="submit-feedback">Submit</button>
+        </form>
+        <p>We value your feedback!</p>
+        <p>For more info, visit our <a href="https://example.com/about" target="_blank" rel="noopener noreferrer">About</a>.</p>
+        <button class="close-modal">Close</button>
+      `;
+
+      modal.querySelector(".close-modal").addEventListener("click", () => {
+        modalContainer.style.display = "none";
+        modal.innerHTML = "";
+      });
+
+      modal
+        .querySelector("#feedback-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const name =
+            modal.querySelector("#fb-name").value.trim() || "Anonymous";
+          const email = modal.querySelector("#fb-email").value.trim() || "";
+          const title = modal.querySelector("#fb-title").value.trim();
+          const description = modal
+            .querySelector("#fb-description")
+            .value.trim();
+          const type = modal.querySelector("#fb-type").value;
+          const fileInput = modal.querySelector("#fb-screenshot");
+          const file = fileInput.files[0];
+
+          if (!title || !description) return;
+
+          modal
+            .querySelector("#feedback-form")
+            .querySelectorAll("input, textarea, select, button")
+            .forEach((el) => (el.disabled = true));
+          modal.innerHTML += `<p class="modal-validating">Submitting...</p>`;
+
+          try {
+            const geo = await getCachedLocation();
+            const userInfo = getFeedBackUserInfo(email, geo);
+            const context = getPageContext();
+
+            const formData = new FormData();
+            formData.append("siteId", SITE_ID);
+            formData.append("title", title);
+            formData.append("description", description);
+            formData.append("name", name);
+            formData.append("type", type);
+            formData.append("visitorId", visitorId);
+            formData.append("userInfo", JSON.stringify(userInfo));
+            formData.append("context", JSON.stringify(context));
+            if (file) formData.append("screenshot", file);
+
+            await fetch("https://your-api.com/feedback", {
+              method: "POST",
+              body: formData,
+            });
+
+            modal.innerHTML = "<p>Thanks for your feedback!</p>";
+            setTimeout(() => {
+              modalContainer.style.display = "none";
+              modal.innerHTML = "";
+            }, 2000);
+          } catch (err) {
+            console.error("Submission error:", err);
+            modal.innerHTML = `<p class="validating-error-message">Failed to submit feedback. Try again later.</p>`;
+          }
         });
-      }
-    };
-    // })
-    // .catch((err) => {
-    //   clearTimeout(timeout); // CLEAR TIMEOUT
-    //   const message =
-    //     err.name === "AbortError"
-    //       ? "Request timed out. Please check your internet connection."
-    //       : err.message === "Invalid site ID"
-    //       ? "Widget not configured properly. Please contact the site admin."
-    //       : "Network error. Please try again later.";
-    //   modal.innerHTML = `<p class="validating-error-message">${message}</p>`;
-    //   console.error("FeedbackHub validation error:", err);
-    // });
-  });
+    }
+  }
+
+  (async () => {
+    await trackVisitorSession();
+    overrideHistoryMethods();
+    setupFeedbackWidget();
+  })();
 });

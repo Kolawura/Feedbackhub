@@ -1,24 +1,31 @@
 import express, { Application, Request, Response } from "express";
 import dotenv from "dotenv";
 import cors from "cors";
+import morgan from "morgan";
+import helmet from "helmet";
+import { limiter } from "./middleware/rateLimiter";
 import connectDB from "./config/db";
 import authRoutes from "./routes/authRoutes";
 import feedbackRoutes from "./routes/feedbackRoutes";
 import visitorRoutes from "./routes/visitorRoutes";
 import { errorHandler } from "./middleware/errorHandler";
 
-// Load environment variables
 dotenv.config();
 
-// Initialize Express app
 const app: Application = express();
 
-// Connect to MongoDB
 connectDB();
 
-// Middleware
-app.use(cors()); // Enable CORS
-app.use(express.json()); // Parse JSON requests
+if (process.env.NODE_ENV === "production") {
+  app.use(helmet());
+  app.use(cors({ origin: "https://your-production-domain.com" }));
+} else {
+  app.use(morgan("dev"));
+  app.use(cors());
+}
+
+app.use(express.json());
+app.use(limiter);
 
 // Routes
 app.use("/api/auth", authRoutes);

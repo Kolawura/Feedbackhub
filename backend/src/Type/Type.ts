@@ -59,4 +59,24 @@ export interface IFeedback extends Document {
   type: "bug" | "feature" | "other";
   createdAt?: Date;
   updatedAt?: Date;
+  visitorId?: object;
+}
+
+export interface VisitorData {
+  siteId: string;
+  visitorId: string;
+  visitTimestamp: Date;
+  sessionStart: Date;
+  page: string;
+  userInfo: {
+    userAgent?: string;
+    language?: string;
+    platform?: string;
+    screenWidth?: number;
+    screenHeight?: number;
+    timezoneOffset?: number;
+  };
+  country?: string;
+  region?: string;
+  city?: string;
 }

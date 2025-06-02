@@ -34,6 +34,11 @@ const feedbackSchema: Schema<IFeedback> = new mongoose.Schema(
       enum: ["bug", "feature", "other"],
       default: "other",
     },
+
+    visitorId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Visitor",
+    },
   },
   {
     timestamps: true,

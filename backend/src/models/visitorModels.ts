@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema } from "mongoose";
+import mongoose, { Document, Model, Schema } from "mongoose";
 import { IPageVisit, IVisitor } from "../Type/Type";
 
 const PageVisitSchema = new Schema<IPageVisit>({
@@ -29,4 +29,8 @@ const VisitorSchema: Schema = new Schema<IVisitor>(
   { timestamps: true }
 );
 
-export default mongoose.model<IVisitor>("Visitor", VisitorSchema);
+const Visitor: Model<IVisitor> = mongoose.model<IVisitor>(
+  "Visitor",
+  VisitorSchema
+);
+export default Visitor;

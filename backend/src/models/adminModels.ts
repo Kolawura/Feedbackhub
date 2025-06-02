@@ -36,5 +36,8 @@ adminSchema.methods.matchPassword = async function (
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-const Admin = mongoose.model<AdminDocument>("Admin", adminSchema);
+const Admin: Model<AdminDocument> = mongoose.model<AdminDocument>(
+  "Admin",
+  adminSchema
+);
 export default Admin;

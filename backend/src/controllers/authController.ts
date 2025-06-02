@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import Admin from "../models/adminModels";
+import { registerSchema } from "../schema/authSchema";
 
 // Generate JWT token
 const generateToken = (adminId: string): string => {
@@ -18,7 +19,16 @@ export const registerAdmin = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  const { firstName, lastName, username, email, password } = req.body;
+  const validateAuth = registerSchema.safeParse(req.body);
+
+  if (!validateAuth.success) {
+    res.status(400).json({
+      errors: validateAuth.error.flatten().fieldErrors,
+    });
+    return;
+  }
+
+  const { firstName, lastName, email, username, password } = validateAuth.data;
 
   try {
     const usernameExists = await Admin.findOne({ username });
@@ -64,7 +74,7 @@ export const loginAdmin = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  const { identifier, password } = req.body; // identifier = username or email
+  const { identifier, password } = req.body;
 
   try {
     const admin = await Admin.findOne({

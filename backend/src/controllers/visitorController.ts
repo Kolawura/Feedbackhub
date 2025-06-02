@@ -26,7 +26,7 @@ export const trackVisitor = async (
     }
 
     // Fetch geolocation data
-    const geoRes = await fetch(`http://ip-api.com/json/${ip}`);
+    const geoRes = await fetch(`https://ipapi.co/${ip}/json`);
     const geoData = await geoRes.json();
 
     if (geoData.status === "success") {
@@ -51,6 +51,42 @@ export const trackVisitor = async (
   } catch (error) {
     console.error("Error tracking visitor:", error);
     res.status(500).json({ error: "Failed to track visitor" });
+  }
+};
+
+export const appendPageVisit = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { siteId, visitorId, sessionStart, page } = req.body;
+
+  if (!siteId || !visitorId || !sessionStart || !page) {
+    res.status(400).json({ error: "Missing required fields" });
+    return;
+  }
+
+  try {
+    const session = await Visitor.findOne({
+      siteId,
+      visitorId,
+      sessionStart: new Date(sessionStart),
+    });
+
+    if (!session) {
+      res.status(404).json({ error: "Session not found" });
+      return;
+    }
+    session.pagesVisited.push({
+      url: page,
+      timestamp: new Date(),
+    });
+
+    await session.save();
+
+    res.status(200).json({ message: "Page visit added" });
+  } catch (error) {
+    console.error("Error appending page visit:", error);
+    res.status(500).json({ error: "Server error" });
   }
 };
 
