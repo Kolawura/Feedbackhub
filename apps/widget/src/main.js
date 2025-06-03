@@ -170,6 +170,35 @@ style.textContent = `
     75% { transform: translateX(-5px); }
     100% { transform: translateX(0); }
   }
+  .feedback-modal p.error-msg {
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+  color: #f00;
+  font-size: 0.875rem;
+  margin: 0;
+  transition: opacity 0.5s ease, max-height 0.5s ease;
+}
+
+.feedback-modal p.error-msg.show {
+  opacity: 1;
+  max-height: 60px;
+}
+  @keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+.modal-fade-out {
+  animation: fadeOut 0.4s ease-out forwards;
+}
+
 `;
 document.head.appendChild(style);
 
@@ -360,8 +389,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     button.addEventListener("click", () => {
       modalContainer.style.display = "flex";
-      modal.innerHTML = `<p class="modal-validating">Validating...</p>`;
       modalContainer.appendChild(modal);
+      modal.innerHTML = `<p class="modal-validating">Validating...</p>`;
 
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 5000);
@@ -394,85 +423,192 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function renderFeedbackForm() {
       modal.innerHTML = `
-        <h3>Feedback Modal</h3>
-        <form id="feedback-form" enctype="multipart/form-data">
-          <input type="text" placeholder="Your name..." id="fb-name" />
-          <input type="email" placeholder="Your email..." id="fb-email" />
-          <input type="text" placeholder="Feedback title..." id="fb-title" required />
-          <textarea placeholder="Your feedback..." id="fb-description" required></textarea>
-          <select id="fb-type">
-            <option value="other">Other</option>
-            <option value="bug">Bug</option>
-            <option value="feature">Feature</option>
-          </select>
-          <input type="file" accept="image/*" id="fb-screenshot" />
-          <button type="submit" class="submit-feedback">Submit</button>
-        </form>
-        <p>We value your feedback!</p>
-        <p>For more info, visit our <a href="https://example.com/about" target="_blank" rel="noopener noreferrer">About</a>.</p>
-        <button class="close-modal">Close</button>
-      `;
+    <h3>Feedback Modal</h3>
+    <form id="feedback-form" enctype="multipart/form-data">
+      <input type="text" placeholder="Your name..." id="fb-name" />
+      <p class="error-msg" id="error-name" >Name must be at least 3 characters.</p>
+
+      <input type="email" placeholder="Your email..." id="fb-email" />
+      <p class="error-msg" id="error-email" >Please enter a valid email.</p>
+
+      <input type="text" placeholder="Feedback title..." id="fb-title" />
+      <p class="error-msg" id="error-title" >Title must be at least 5 characters.</p>
+
+      <textarea placeholder="Your feedback..." id="fb-description" required></textarea>
+      <p class="error-msg" id="error-description" >Description must be at least 10 characters.</p>
+
+      <select id="fb-type">
+        <option value="other">Other</option>
+        <option value="bug">Bug</option>
+        <option value="feature">Feature</option>
+      </select>
+
+      <input type="file" accept="image/*" id="fb-screenshot" />
+      <button type="submit" class="submit-feedback">Submit</button>
+    </form>
+
+    <p>We value your feedback!</p>
+    <p>For more info, visit our <a href="https://example.com/about" target="_blank" rel="noopener noreferrer">About</a>.</p>
+    <button class="close-modal">Close</button>
+  `;
+
+      const form = modal.querySelector("#feedback-form");
+
+      const nameInput = form.querySelector("#fb-name");
+      const emailInput = form.querySelector("#fb-email");
+      const titleInput = form.querySelector("#fb-title");
+      const descInput = form.querySelector("#fb-description");
+      const submitButton = form.querySelector(".submit-feedback");
+
+      const errorName = form.querySelector("#error-name");
+      const errorEmail = form.querySelector("#error-email");
+      const errorTitle = form.querySelector("#error-title");
+      const errorDesc = form.querySelector("#error-description");
+
+      const validators = {
+        name: (value) =>
+          value.length >= 3 ? "" : "Title must be at least 3 characters.",
+        email: (value) =>
+          !value
+            ? "Email is required."
+            : !/^\S+@\S+\.\S+$/.test(value)
+            ? "Please enter a valid email."
+            : "",
+        title: (value) =>
+          value.length >= 5 ? "" : "Title must be at least 5 characters.",
+        description: (value) =>
+          value.length >= 10
+            ? ""
+            : "Description must be at least 10 characters.",
+      };
+
+      function toggleError(el, input, errorMessage) {
+        if (errorMessage) {
+          el.textContent = errorMessage;
+          el.classList.add("show");
+          input.style.borderColor = "#f00";
+        } else {
+          el.classList.remove("show");
+          input.style.borderColor = "";
+        }
+      }
+
+      nameInput.addEventListener("blur", () => {
+        const error = validators.name(nameInput.value.trim());
+        toggleError(errorName, nameInput, error);
+      });
+      nameInput.addEventListener("input", () => {
+        toggleError(errorName, nameInput, "");
+      });
+
+      emailInput.addEventListener("blur", () => {
+        const error = validators.email(emailInput.value.trim());
+        toggleError(errorEmail, emailInput, error);
+      });
+      emailInput.addEventListener("input", () => {
+        toggleError(errorEmail, emailInput, "");
+      });
+
+      titleInput.addEventListener("blur", () => {
+        const error = validators.title(titleInput.value.trim());
+        toggleError(errorTitle, titleInput, error);
+      });
+      titleInput.addEventListener("input", () => {
+        toggleError(errorTitle, titleInput, "");
+      });
+
+      descInput.addEventListener("blur", () => {
+        const error = validators.description(descInput.value.trim());
+        toggleError(errorDesc, descInput, error);
+      });
+      descInput.addEventListener("input", () => {
+        toggleError(errorDesc, descInput, "");
+      });
 
       modal.querySelector(".close-modal").addEventListener("click", () => {
         modalContainer.style.display = "none";
         modal.innerHTML = "";
       });
 
-      modal
-        .querySelector("#feedback-form")
-        .addEventListener("submit", async (e) => {
-          e.preventDefault();
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
 
-          const name =
-            modal.querySelector("#fb-name").value.trim() || "Anonymous";
-          const email = modal.querySelector("#fb-email").value.trim() || "";
-          const title = modal.querySelector("#fb-title").value.trim();
-          const description = modal
-            .querySelector("#fb-description")
-            .value.trim();
-          const type = modal.querySelector("#fb-type").value;
-          const fileInput = modal.querySelector("#fb-screenshot");
-          const file = fileInput.files[0];
+        const name = nameInput.value.trim() || "Anonymous";
+        const email = emailInput.value.trim();
+        const title = titleInput.value.trim();
+        const description = descInput.value.trim();
+        const type = form.querySelector("#fb-type").value;
+        const file = form.querySelector("#fb-screenshot").files[0];
 
-          if (!title || !description) return;
+        // Clear all errors first
+        errorName.textContent = "";
+        errorEmail.textContent = "";
+        errorTitle.textContent = "";
+        errorDesc.textContent = "";
 
-          modal
-            .querySelector("#feedback-form")
-            .querySelectorAll("input, textarea, select, button")
-            .forEach((el) => (el.disabled = true));
-          modal.innerHTML += `<p class="modal-validating">Submitting...</p>`;
+        let hasError = false;
 
-          try {
-            const geo = await getCachedLocation();
-            const userInfo = getFeedBackUserInfo(email, geo);
-            const context = getPageContext();
+        const emailError = validators.email(email);
+        const titleError = validators.title(title);
+        const descError = validators.description(description);
 
-            const formData = new FormData();
-            formData.append("siteId", SITE_ID);
-            formData.append("title", title);
-            formData.append("description", description);
-            formData.append("name", name);
-            formData.append("type", type);
-            formData.append("visitorId", visitorId);
-            formData.append("userInfo", JSON.stringify(userInfo));
-            formData.append("context", JSON.stringify(context));
-            if (file) formData.append("screenshot", file);
+        if (emailError) {
+          errorEmail.textContent = emailError;
+          hasError = true;
+        }
+        if (titleError) {
+          errorTitle.textContent = titleError;
+          hasError = true;
+        }
+        if (descError) {
+          errorDesc.textContent = descError;
+          hasError = true;
+        }
 
-            await fetch("https://your-api.com/feedback", {
-              method: "POST",
-              body: formData,
-            });
+        if (hasError) return;
 
-            modal.innerHTML = "<p>Thanks for your feedback!</p>";
-            setTimeout(() => {
-              modalContainer.style.display = "none";
-              modal.innerHTML = "";
-            }, 2000);
-          } catch (err) {
-            console.error("Submission error:", err);
-            modal.innerHTML = `<p class="validating-error-message">Failed to submit feedback. Try again later.</p>`;
-          }
-        });
+        // Disable form inputs
+        form
+          .querySelectorAll("input, textarea, select, button")
+          .forEach((el) => (el.disabled = true));
+        submitButton.disabled = true;
+        submitButton.textContent = "Submitting...";
+        submitButton.classList.add("modal-validating");
+
+        try {
+          const geo = await getCachedLocation();
+          const userInfo = getFeedBackUserInfo(email, geo);
+          const context = getPageContext();
+
+          const formData = new FormData();
+          formData.append("siteId", SITE_ID);
+          formData.append("title", title);
+          formData.append("description", description);
+          formData.append("name", name);
+          formData.append("type", type);
+          formData.append("visitorId", visitorId);
+          formData.append("userInfo", JSON.stringify(userInfo));
+          formData.append("context", JSON.stringify(context));
+          if (file) formData.append("screenshot", file);
+
+          await fetch("https://your-api.com/feedback", {
+            method: "POST",
+            body: formData,
+          });
+
+          modal.innerHTML = "<p>Thanks for your feedback!</p>";
+          modal.classList.add("modal-fade-out");
+
+          setTimeout(() => {
+            modalContainer.style.display = "none";
+            modal.classList.remove("modal-fade-out");
+            modal.innerHTML = "";
+          }, 400);
+        } catch (err) {
+          console.error("Submission error:", err);
+          modal.innerHTML = `<p class="validating-error-message">Failed to submit feedback. Try again later.</p>`;
+        }
+      });
     }
   }
 
