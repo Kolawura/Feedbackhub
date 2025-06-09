@@ -2,8 +2,9 @@ import { LockIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LoginFormData, loginSchema } from "../Schemas/LoginSchema";
+import { Button } from "../Components/ui/Button";
 
-const LoginForm = () => {
+export const LoginForm = () => {
   const {
     register,
     handleSubmit,
@@ -44,16 +45,11 @@ const LoginForm = () => {
       </div>
 
       <div className="flex items-center justify-between">
-        <button
-          type="submit"
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring focus:ring-blue-500"
-        >
+        <Button type="submit">
           <LockIcon size={16} />
           Login
-        </button>
+        </Button>
       </div>
     </form>
   );
 };
-
-export default LoginForm;

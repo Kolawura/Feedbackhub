@@ -2,8 +2,9 @@ import { UserPlus } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { RegisterFormData, registerSchema } from "../Schemas/RegisterSchema";
+import { Button } from "../Components/ui/Button";
 
-const RegisterForm = () => {
+export const RegisterForm = () => {
   const {
     register,
     handleSubmit,
@@ -19,7 +20,7 @@ const RegisterForm = () => {
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="bg-white dark:bg-white/3 shadow-md rounded px-8 pt-6 pb-8 w-full max-w-sm"
+      className="bg-white dark:bg-white/3 shadow-md rounded px-8 pt-6 pb-8 w-full max-w-sm space-y-4"
     >
       <h2 className="text-2xl font-bold mb-6 text-center text-gray-900 dark:text-white">
         Create Account
@@ -83,15 +84,10 @@ const RegisterForm = () => {
         )}
       </div>
 
-      <button
-        type="submit"
-        className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring focus:ring-blue-500"
-      >
+      <Button type="submit" className="bg-blue-500 gap-2 rounded-2xl w-full">
         <UserPlus size={16} />
         Register
-      </button>
+      </Button>
     </form>
   );
 };
-
-export default RegisterForm;

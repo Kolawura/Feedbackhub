@@ -5,7 +5,7 @@ type TopCardProps = {
   type: "Channels" | "Source";
 };
 
-const TopCard = ({ type }: TopCardProps) => {
+const TopChannel = ({ type }: TopCardProps) => {
   const channels = [
     { name: "Google", visitors: "4.7K" },
     { name: "Facebook", visitors: "3.4K" },
@@ -25,10 +25,10 @@ const TopCard = ({ type }: TopCardProps) => {
 
   return (
     <motion.div
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0, x: 10 }}
+      animate={{ opacity: 1, x: 0 }}
       transition={{ delay: 0.5 }}
-      className="bg-white dark:bg-white/3 shadow-md rounded-xl p-5 w-full max-w-sm"
+      className="bg-white dark:bg-white/3 shadow-md rounded-xl p-5 w-sm"
     >
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -63,4 +63,4 @@ const TopCard = ({ type }: TopCardProps) => {
   );
 };
 
-export default TopCard;
+export default TopChannel;

@@ -13,6 +13,7 @@ export const submitFeedback = async (
 
   if (!validateFeedback.success) {
     res.status(400).json({
+      success: false,
       message: "Invalid input",
       errors: validateFeedback.error.flatten().fieldErrors,
     });
@@ -35,12 +36,17 @@ export const submitFeedback = async (
       visitorId,
     });
 
-    res
-      .status(201)
-      .json({ message: "Feedback submitted successfully", feedback });
+    res.status(201).json({
+      success: true,
+      message: "Feedback submitted successfully",
+      data: feedback,
+    });
   } catch (error) {
     console.error("Feedback submission error:", error);
-    res.status(500).json({ message: "Failed to submit feedback" });
+    res.status(500).json({
+      success: false,
+      message: "Failed to submit feedback",
+    });
   }
 };
 
@@ -57,10 +63,17 @@ export const getFeedbackForSite = async (
     const feedbacks = await Feedback.find({ siteId })
       .sort({ createdAt: -1 })
       .populate("visitor");
-    res.status(200).json(feedbacks);
+    res.status(200).json({
+      success: true,
+      data: feedbacks,
+      message: "Feedback fetched successfully",
+    });
   } catch (error) {
     console.error("Fetching feedback error:", error);
-    res.status(500).json({ message: "Failed to fetch feedback" });
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch feedback",
+    });
   }
 };
 
@@ -70,15 +83,29 @@ export const getFeedbackForSite = async (
 export const getFeedbackByVisitor = async (req: Request, res: Response) => {
   const { visitorId } = req.params;
 
-  if (!visitorId) res.status(400).json({ error: "visitorId is required" });
+  if (!visitorId) {
+    res.status(400).json({
+      success: false,
+      message: "visitorId is required",
+      errors: { visitorId: "Visitor ID is required" },
+    });
+    return;
+  }
 
   try {
     const feedbacks = await Feedback.find({ visitorId }).sort({
       createdAt: -1,
     });
-    res.status(200).json({ success: true, feedbacks });
+    res.status(200).json({
+      success: true,
+      data: feedbacks,
+      message: "Feedback fetched successfully",
+    });
   } catch (error) {
     console.error("Error fetching feedback:", error);
-    res.status(500).json({ success: false, error: "Server error" });
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
   }
 };

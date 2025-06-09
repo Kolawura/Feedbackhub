@@ -1,7 +1,13 @@
 import { useState, useEffect } from "react";
 import { Logs, Moon, Search, Sun } from "lucide-react";
+import { NavbarProps } from "../Type";
 
-export default function Navbar() {
+export default function Navbar({
+  isCollapsed,
+  setIsCollapsed,
+  className,
+  NavWidth,
+}: NavbarProps) {
   const [darkMode, setDarkMode] = useState(
     () => localStorage.getItem("theme") === "dark"
   );
@@ -18,10 +24,15 @@ export default function Navbar() {
   }, [darkMode]);
 
   return (
-    <nav className="w-full h-16 px-4 flex items-center justify-between bg-white dark:bg-gray-900 border-b border-gray-300 dark:border-gray-700">
+    <nav
+      className={`${className} flex-1 fixed top-0 right-0 overflow-x-hidden h-16 px-4 items-center justify-between bg-white dark:bg-gray-900 border-b border-gray-300 dark:border-gray-700 transition-all duration-200`}
+      style={{
+        width: NavWidth,
+      }}
+    >
       <div className="flex items-center space-x-2 w-1/2">
         <button
-          // onClick={() => setDarkMode(!darkMode)}
+          onClick={() => setIsCollapsed(!isCollapsed)}
           className="text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white"
           aria-label="Toggle dark mode"
         >
@@ -35,7 +46,7 @@ export default function Navbar() {
           <input
             type="text"
             placeholder="Search..."
-            className="w-full pl-10 pr-4 py-2 rounded-md bg-white dark:bg-gray-700 text-sm text-gray-800 dark:text-white focus:outline-none focus:shadow-md focus:ring-blue-300 focus:border-blue-300 border border-gray-300 dark:border-gray-600 transition duration-200"
+            className="w-full pl-10 pr-4 py-2 rounded-md bg-white dark:bg-white/3 text-sm text-gray-800 dark:text-white focus:outline-none focus:shadow-md focus:ring-blue-300 focus:border-blue-300 border border-gray-300 dark:border-gray-600 transition duration-200"
           />
         </div>
       </div>
@@ -47,9 +58,9 @@ export default function Navbar() {
           aria-label="Toggle dark mode"
         >
           {darkMode ? (
-            <Sun className="w-10 h-10 p-2 rounded-full border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-white/3" />
+            <Sun className="w-10 h-10 p-2 rounded-full border border-gray-300 dark:border-white/3 hover:bg-gray-100 dark:hover:bg-white/3" />
           ) : (
-            <Moon className="w-10 h-10 p-2 rounded-full border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-white/3" />
+            <Moon className="w-10 h-10 p-2 rounded-full border border-gray-300 dark:border-white/3 hover:bg-gray-100 dark:hover:bg-white/3" />
           )}
         </button>
 

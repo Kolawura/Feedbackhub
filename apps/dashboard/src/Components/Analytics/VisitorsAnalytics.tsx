@@ -1,5 +1,8 @@
-import React, { useEffect, useState } from "react";
+import { useState } from "react";
+import { useMemo } from "react";
 import { Bar } from "react-chartjs-2";
+import { motion, AnimatePresence } from "framer-motion";
+import { ChartOptions } from "chart.js";
 import {
   Chart as ChartJS,
   BarElement,
@@ -10,11 +13,14 @@ import {
 } from "chart.js";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
+interface ChartInfo {
+  labels: string[];
+  data: number[];
+  label: string;
+}
 
 const VisitorAnalytics = () => {
   const [selected, setSelected] = useState("optionOne");
-
-  // Time range options
   const timeRanges = [
     { id: "optionOne", label: "30 days", value: "30days" },
     { id: "optionTwo", label: "12 months", value: "12months" },
@@ -23,7 +29,7 @@ const VisitorAnalytics = () => {
     { id: "optionFive", label: "24 hours", value: "24hours" },
   ];
 
-  const getChartData = (range: string) => {
+  const getChartData = (range: string): ChartInfo => {
     switch (range) {
       case "30days":
         return {
@@ -44,7 +50,6 @@ const VisitorAnalytics = () => {
             "14",
             "15",
             "16",
-            "17",
             "17",
             "18",
             "19",
@@ -115,11 +120,9 @@ const VisitorAnalytics = () => {
         };
     }
   };
-
-  // Get current range value from selected option
   const currentRange =
     timeRanges.find((range) => range.id === selected)?.value || "30days";
-  const chartData = getChartData(currentRange);
+  const chartData = useMemo(() => getChartData(currentRange), [currentRange]);
 
   const data = {
     labels: chartData.labels,
@@ -133,9 +136,13 @@ const VisitorAnalytics = () => {
     ],
   };
 
-  const options = {
+  const options: ChartOptions<"bar"> = {
     responsive: true,
     maintainAspectRatio: false,
+    animation: {
+      duration: 600,
+      easing: "easeInOutQuad",
+    },
     plugins: {
       legend: {
         display: false,
@@ -146,12 +153,16 @@ const VisitorAnalytics = () => {
         beginAtZero: true,
         ticks: {
           color: "#9CA3AF",
+          stepSize: 500,
         },
         grid: {
-          color: "#bbb",
-          borderDash: [5, 5],
-          borderColor: "#ddd6d6",
-          drawBorder: false,
+          color: "#888888",
+          tickBorderDash: [5, 5],
+          tickColor: "#00f",
+        },
+        border: {
+          display: true,
+          color: "#ddd6d6",
         },
       },
       x: {
@@ -160,6 +171,10 @@ const VisitorAnalytics = () => {
         },
         grid: {
           display: false,
+        },
+        border: {
+          display: true,
+          color: "#ddd6d6",
         },
       },
     },
@@ -193,7 +208,18 @@ const VisitorAnalytics = () => {
           ))}
         </div>
       </div>
-      <Bar data={data} options={options} />
+      <AnimatePresence mode="wait">
+        <motion.div
+          // key={selected}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.3, ease: "easeInOut" }}
+          className="h-[400px]"
+        >
+          <Bar data={data} options={options} />
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 };

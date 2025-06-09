@@ -23,6 +23,8 @@ export const registerAdmin = async (
 
   if (!validateAuth.success) {
     res.status(400).json({
+      success: false,
+      message: "Invalid input",
       errors: validateAuth.error.flatten().fieldErrors,
     });
     return;
@@ -36,6 +38,7 @@ export const registerAdmin = async (
 
     if (usernameExists || emailExists) {
       res.status(400).json({
+        success: false,
         message: usernameExists
           ? "Username already in use"
           : "Email already in use",
@@ -54,16 +57,22 @@ export const registerAdmin = async (
     const token = generateToken(newAdmin._id.toString());
 
     res.status(201).json({
-      _id: newAdmin._id,
-      firstName: newAdmin.firstName,
-      lastName: newAdmin.lastName,
-      username: newAdmin.username,
-      email: newAdmin.email,
-      token,
+      success: true,
+      message: "Admin registered successfully",
+      data: {
+        _id: newAdmin._id,
+        firstName: newAdmin.firstName,
+        lastName: newAdmin.lastName,
+        username: newAdmin.username,
+        email: newAdmin.email,
+        token,
+      },
     });
   } catch (error) {
     console.error("Registration error:", error);
-    res.status(500).json({ message: "Server error during registration" });
+    res
+      .status(500)
+      .json({ success: false, message: "Server error during registration" });
   }
 };
 
@@ -81,28 +90,30 @@ export const loginAdmin = async (
       $or: [{ username: identifier }, { email: identifier }],
     });
 
-    if (!admin) {
-      res.status(401).json({ message: "Invalid Username or Email" });
-      return;
-    }
-
-    if (!(await admin.matchPassword(password))) {
-      res.status(401).json({ message: "Invalid Password" });
+    if (!admin || !(await admin.matchPassword(password))) {
+      res.status(401).json({ success: false, message: "Invalid credentials" });
       return;
     }
 
     const token = generateToken(admin._id.toString());
 
     res.status(200).json({
-      _id: admin._id,
-      firstName: admin.firstName,
-      lastName: admin.lastName,
-      username: admin.username,
-      email: admin.email,
-      token,
+      success: true,
+      message: "Login successful",
+      data: {
+        _id: admin._id,
+        firstName: admin.firstName,
+        lastName: admin.lastName,
+        username: admin.username,
+        email: admin.email,
+        token,
+      },
     });
   } catch (error) {
     console.error("Login error:", error);
-    res.status(500).json({ message: "Server error during login" });
+    res.status(500).json({
+      success: false,
+      message: "Server error during login",
+    });
   }
 };

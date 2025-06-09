@@ -13,9 +13,9 @@ export const trackVisitor = async (
     const visitorData = req.body;
 
     let ip =
-      (req.headers["x-forwarded-for"] as string) ||
+      (req.headers["x-forwarded-for"] as string)?.split(",")[0].trim() ||
       req.socket.remoteAddress ||
-      "";
+      "8.8.8.8";
 
     if (ip.includes(",")) {
       ip = ip.split(",")[0].trim();
@@ -29,7 +29,7 @@ export const trackVisitor = async (
     const geoRes = await fetch(`https://ipapi.co/${ip}/json`);
     const geoData = await geoRes.json();
 
-    if (geoData.status === "success") {
+    if (!geoData.error) {
       visitorData.country = geoData.country;
       visitorData.region = geoData.regionName;
       visitorData.city = geoData.city;
@@ -47,10 +47,18 @@ export const trackVisitor = async (
     const visitorRecord = new Visitor(visitorData);
     await visitorRecord.save();
 
-    res.status(201).json({ message: "Visitor tracked", visitorRecord });
+    res.status(201).json({
+      success: false,
+      message: "Visitor tracked",
+      data: visitorRecord,
+    });
   } catch (error) {
     console.error("Error tracking visitor:", error);
-    res.status(500).json({ error: "Failed to track visitor" });
+    res.status(500).json({
+      success: false,
+      message: "Failed to track visitor",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
   }
 };
 
@@ -61,7 +69,16 @@ export const appendPageVisit = async (
   const { siteId, visitorId, sessionStart, page } = req.body;
 
   if (!siteId || !visitorId || !sessionStart || !page) {
-    res.status(400).json({ error: "Missing required fields" });
+    res.status(400).json({
+      success: false,
+      message: "Missing required fields",
+      errors: {
+        siteId: "Site ID is required",
+        visitorId: "Visitor ID is required",
+        sessionStart: "Session start time is required",
+        page: "Page URL is required",
+      },
+    });
     return;
   }
 
@@ -73,7 +90,11 @@ export const appendPageVisit = async (
     });
 
     if (!session) {
-      res.status(404).json({ error: "Session not found" });
+      res.status(404).json({
+        success: false,
+        message: "Session not found",
+        errors: { session: "No session found for the given parameters" },
+      });
       return;
     }
     session.pagesVisited.push({
@@ -83,10 +104,16 @@ export const appendPageVisit = async (
 
     await session.save();
 
-    res.status(200).json({ message: "Page visit added" });
+    res.status(200).json({
+      success: true,
+      message: "Page visit added",
+    });
   } catch (error) {
     console.error("Error appending page visit:", error);
-    res.status(500).json({ error: "Server error" });
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
   }
 };
 
@@ -129,6 +156,8 @@ export const getAnalytics = async (
     });
   } catch (error) {
     console.error("Analytics error:", error);
-    res.status(500).json({ message: "Failed to fetch analytics" });
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to fetch analytics" });
   }
 };

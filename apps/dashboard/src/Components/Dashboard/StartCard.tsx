@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { FC, ReactNode } from "react";
+import { ReactNode } from "react";
 
 interface StatCardProps {
   title: string;
@@ -19,10 +19,10 @@ const StatCard = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.6 }}
-      className="bg-white dark:bg-white/3 rounded-xl shadow-md p-6 flex items-center gap-4 transition hover:shadow-lg border border-gray-300 dark:border-gray-700"
+      className="bg-white dark:bg-white/3 rounded-2xl p-6 flex items-center gap-4 transition border border-gray-300 dark:border-gray-700"
     >
       <div
-        className={`w-12 h-12 flex items-center justify-center text-white rounded-full ${color}`}
+        className={`w-12 h-12 flex items-center justify-center rounded-full ${color}`}
       >
         {icon}
       </div>
