@@ -1,9 +1,18 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
+import HomeNavbar from "../Bars/HomeNavbar";
 
 export const AuthLayout = () => {
+  const location = useLocation();
+
+  const hideNavbarOnPaths = ["/login", "/register"];
+  const shouldShowNavbar = !hideNavbarOnPaths.includes(location.pathname);
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-      <Outlet />
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      {shouldShowNavbar && <HomeNavbar />}
+      <div className="flex items-center py-4 justify-center">
+        <Outlet />
+      </div>
     </div>
   );
 };

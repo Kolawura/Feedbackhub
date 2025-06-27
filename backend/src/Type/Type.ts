@@ -1,3 +1,8 @@
+export interface ISite {
+  siteId: string;
+  name?: string;
+  createdAt?: Date;
+}
 export interface IAdmin extends Document {
   _id: string;
   firstName: string;
@@ -5,6 +10,7 @@ export interface IAdmin extends Document {
   username: string;
   email: string;
   password: string;
+  AdminSite: ISite[];
   matchPassword: (enteredPassword: string) => Promise<boolean>;
 }
 export interface AdminDocument extends IAdmin, Document {
@@ -56,7 +62,8 @@ export interface IFeedback extends Document {
   description?: string;
   name?: string;
   userInfo?: IUserInfo;
-  type: "bug" | "feature" | "other";
+  category: "bug" | "feature" | "improvement" | "other";
+  priority: "critical" | "high" | "medium" | "low";
   createdAt?: Date;
   updatedAt?: Date;
   visitorId?: object;

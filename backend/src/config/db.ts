@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 
 const connectDB = async (): Promise<void> => {
   try {
+    console.log("🌐 Connecting to MongoDB...");
     const MONGO_URI = process.env.MONGO_URI;
     if (!MONGO_URI) {
       throw new Error("MONGO_URI not found in environment variables");

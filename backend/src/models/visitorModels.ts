@@ -1,5 +1,5 @@
 import mongoose, { Document, Model, Schema } from "mongoose";
-import { IPageVisit, IVisitor } from "../Type/Type";
+import { IPageVisit, IVisitor } from "../Type/Type.js";
 
 const PageVisitSchema = new Schema<IPageVisit>({
   url: { type: String, required: true },

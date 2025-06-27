@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import fetch from "node-fetch";
-import Visitor from "../models/visitorModels";
+import Visitor from "../models/visitorModels.js";
 
 // @desc    Track visitor with geolocation
 // @route   POST /api/visitors/track

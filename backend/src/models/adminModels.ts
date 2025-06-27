@@ -1,6 +1,15 @@
 import mongoose, { Document, Model, Schema } from "mongoose";
 import bcrypt from "bcryptjs";
-import { AdminDocument } from "../Type/Type";
+import { AdminDocument, ISite } from "../Type/Type.js";
+
+const siteSchema: Schema<ISite> = new mongoose.Schema(
+  {
+    siteId: { type: String, required: true, unique: true },
+    name: { type: String },
+    createdAt: { type: Date, default: Date.now },
+  },
+  { _id: false }
+);
 
 const adminSchema: Schema<AdminDocument> = new mongoose.Schema(
   {
@@ -9,6 +18,11 @@ const adminSchema: Schema<AdminDocument> = new mongoose.Schema(
     username: { type: String, required: true, unique: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
+    AdminSite: {
+      type: [siteSchema],
+      default: [],
+      required: false,
+    },
   },
   {
     timestamps: true,
@@ -28,7 +42,6 @@ adminSchema.pre<AdminDocument>("save", async function (next) {
   }
 });
 
-// Compare login password with hashed password
 adminSchema.methods.matchPassword = async function (
   this: AdminDocument,
   enteredPassword: string

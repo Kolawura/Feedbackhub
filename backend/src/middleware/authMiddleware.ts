@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
-import Admin from "../models/adminModels";
-import { AdminDocument } from "../Type/Type";
+import Admin from "../models/adminModels.js";
+import { AdminDocument } from "../Type/Type.js";
 
 declare module "express-serve-static-core" {
   interface Request {

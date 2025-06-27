@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import Feedback from "../models/feedbackModels";
-import { feedbackSchema } from "../schema/feedbackSchema";
+import Feedback from "../models/feedbackModels.js";
+import { feedbackSchema } from "../schema/feedbackSchema.js";
 
 // @desc    Submit feedback (public)
 // @route   POST /api/feedback
@@ -20,8 +20,16 @@ export const submitFeedback = async (
     return;
   }
 
-  const { siteId, title, description, name, userInfo, type, visitorId } =
-    validateFeedback.data;
+  const {
+    siteId,
+    title,
+    description,
+    name,
+    userInfo,
+    category,
+    priority,
+    visitorId,
+  } = validateFeedback.data;
 
   const visitorName = name && name.trim() !== "" ? name.trim() : "Anonymous";
 
@@ -32,7 +40,8 @@ export const submitFeedback = async (
       description,
       name: visitorName,
       userInfo,
-      type,
+      category,
+      priority,
       visitorId,
     });
 

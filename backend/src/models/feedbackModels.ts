@@ -1,5 +1,5 @@
 import mongoose, { Document, Model, Schema } from "mongoose";
-import { IFeedback } from "../Type/Type";
+import { IFeedback } from "../Type/Type.js";
 
 const feedbackSchema: Schema<IFeedback> = new mongoose.Schema(
   {
@@ -29,10 +29,15 @@ const feedbackSchema: Schema<IFeedback> = new mongoose.Schema(
       location: String,
       email: String,
     },
-    type: {
+    category: {
       type: String,
-      enum: ["bug", "feature", "other"],
+      enum: ["bug", "feature", "improvement", "other"],
       default: "other",
+    },
+    priority: {
+      type: String,
+      enum: ["critical", "high", "medium", "low"],
+      default: "low",
     },
 
     visitorId: {

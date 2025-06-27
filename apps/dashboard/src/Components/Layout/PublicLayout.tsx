@@ -1,5 +1,5 @@
 import { Outlet } from "react-router-dom";
-import HomeNavbar from "../HomeNavbar";
+import HomeNavbar from "../Bars/HomeNavbar";
 
 export const PublicLayout = () => {
   return (

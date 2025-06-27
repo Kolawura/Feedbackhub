@@ -14,6 +14,7 @@ export const feedbackSchema = z.object({
       email: z.string().email().optional(),
     })
     .optional(),
-  type: z.enum(["bug", "feature", "other"]).optional(),
+  category: z.enum(["bug", "feature", "improvement", "other"]).optional(),
+  priority: z.enum(["critical", "high", "medium", "low"]).optional(),
   visitorId: z.string().optional(),
 });

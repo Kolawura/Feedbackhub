@@ -3,10 +3,11 @@
   "version": "1.0.0",
   "description": "Feedbackhub backend ",
   "main": "server.js",
+  "type": "module",
   "scripts": {
-    "dev": "nodemon src/server.ts",
+    "dev": "concurrently \"tsc --watch\" \"nodemon dist/server.js\"",
+    "build": "rimraf dist && tsc",
     "start": "node dist/server.js",
-    "build": "tsc",
     "test": "jest",
     "lint": "eslint . --ext .ts,.tsx",
     "dev:watch": "concurrently \"npm run dev\" \"npm run build -- --watch\""
@@ -15,19 +16,23 @@
   "license": "ISC",
   "devDependencies": {
     "@types/bcryptjs": "^3.0.0",
+    "@types/cookie-parser": "^1.4.9",
     "@types/cors": "^2.8.18",
     "@types/express": "^5.0.2",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/morgan": "^1.9.9",
-    "@types/node": "^22.15.24",
+    "@types/nanoid": "^3.0.0",
+    "@types/node": "^22.15.32",
     "@types/node-fetch": "^2.6.12",
     "concurrently": "^9.1.2",
     "nodemon": "^3.1.10",
+    "rimraf": "^6.0.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
@@ -37,6 +42,7 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.15.1",
     "morgan": "^1.10.0",
+    "nanoid": "^5.1.5",
     "node-fetch": "^2.7.0",
     "zod": "^3.25.42"
   }

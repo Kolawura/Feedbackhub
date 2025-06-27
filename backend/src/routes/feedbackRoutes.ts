@@ -3,8 +3,8 @@ import {
   submitFeedback,
   getFeedbackForSite,
   getFeedbackByVisitor,
-} from "../controllers/feedbackController";
-import { protect } from "../middleware/authMiddleware";
+} from "../controllers/feedbackController.js";
+import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 

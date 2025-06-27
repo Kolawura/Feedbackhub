@@ -1,12 +1,12 @@
-import { defineConfig } from 'vite'
+import { defineConfig } from "vite";
 
 export default defineConfig({
   build: {
     lib: {
-      entry: 'src/main.js',
-      name: 'FeedbackWidget',
+      entry: "src/main.js",
+      name: "FeedbackWidget",
       fileName: () => `widget.js`,
-      formats: ['iife'], // for <script> usage
-    }
-  }
-})
+      formats: ["iife"],
+    },
+  },
+});

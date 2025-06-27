@@ -3,8 +3,8 @@ import {
   trackVisitor,
   getAnalytics,
   appendPageVisit,
-} from "../controllers/visitorController";
-import { protect } from "../middleware/authMiddleware";
+} from "../controllers/visitorController.js";
+import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 

@@ -9,3 +9,5 @@ layer(base);
   --font-*: initial;
   --font-outfit: Outfit, sans-serif;
 }
+
+@custom-variant dark (&:where(.dark, .dark *));

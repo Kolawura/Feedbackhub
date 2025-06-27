@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Logs, Moon, Search, Sun } from "lucide-react";
-import { NavbarProps } from "../Type";
+import { NavbarProps } from "../../Type";
+import { useThemeStore } from "../../Store/useThemeStore";
 
 export default function Navbar({
   isCollapsed,
@@ -8,20 +9,7 @@ export default function Navbar({
   className,
   NavWidth,
 }: NavbarProps) {
-  const [darkMode, setDarkMode] = useState(
-    () => localStorage.getItem("theme") === "dark"
-  );
-
-  useEffect(() => {
-    const root = document.documentElement;
-    if (darkMode) {
-      root.classList.add("dark");
-      localStorage.setItem("theme", "dark");
-    } else {
-      root.classList.remove("dark");
-      localStorage.setItem("theme", "light");
-    }
-  }, [darkMode]);
+  const { theme, toggleTheme } = useThemeStore();
 
   return (
     <nav
@@ -53,11 +41,11 @@ export default function Navbar({
 
       <div className="flex items-center space-x-4">
         <button
-          onClick={() => setDarkMode(!darkMode)}
+          onClick={toggleTheme}
           className="text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white"
           aria-label="Toggle dark mode"
         >
-          {darkMode ? (
+          {theme ? (
             <Sun className="w-10 h-10 p-2 rounded-full border border-gray-300 dark:border-white/3 hover:bg-gray-100 dark:hover:bg-white/3" />
           ) : (
             <Moon className="w-10 h-10 p-2 rounded-full border border-gray-300 dark:border-white/3 hover:bg-gray-100 dark:hover:bg-white/3" />

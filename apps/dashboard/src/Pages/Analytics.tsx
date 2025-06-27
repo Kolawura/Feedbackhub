@@ -1,70 +1,62 @@
-import { useEffect, useState } from "react";
+import {
+  MessageCircle,
+  ThumbsUp,
+  ThumbsDown,
+  Globe,
+  MessageSquare,
+} from "lucide-react";
+import StatCard from "../Components/Dashboard/StartCard";
+import { DashboardAnalytics } from "../Components/Dashboard/DashboardAnalytics";
+import RecentFeedback from "../Components/Feedbacks/RecentFeedbacks";
+import VisitorAnalytics from "../Components/Analytics/VisitorsAnalytics";
+import TopChannel from "../Components/Dashboard/TopChannel";
 
-interface TopPage {
-  url: string;
-  count: number;
-}
-
-interface AnalyticsData {
-  totalVisitors: number;
-  totalPageViews: number;
-  topPages: TopPage[];
-}
-
-const AnalyticsPage = () => {
-  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchAnalytics = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch(`../Api/api.json`);
-        const json = await response.json();
-
-        if (!json.success) {
-          throw new Error("Failed to fetch analytics");
-        }
-        setAnalytics(json.data);
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAnalytics();
-  }, []);
-
-  if (loading) return <div>Loading analytics...</div>;
-  if (error) return <div>Error: {error}</div>;
-
-  if (!analytics) return null;
-
+export default function DashboardPage() {
   return (
-    <div>
-      <h1>Site Analytics</h1>
-
-      <div className="summary-cards">
-        <div>Total Visitors: {analytics.totalVisitors}</div>
-        <div>Total Page Views: {analytics.totalPageViews}</div>
-        <div>
-          Avg Pages / Visitor:{" "}
-          {(analytics.totalPageViews / analytics.totalVisitors).toFixed(2)}
+    <div className="p-6 transition-all duration-200">
+      <h1 className="text-3xl text-center font-bold text-gray-800 dark:text-white">
+        Analytics
+      </h1>
+      <h2 className="text-2xl text-center font-semibold text-gray-800 dark:text-white mb-6">
+        Welcome back, Adekola 👋
+      </h2>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <StatCard
+          title="Total Feedback"
+          value={128}
+          icon={<MessageSquare size={20} />}
+          color="bg-blue-500/15 text-blue-500"
+        />
+        <StatCard
+          title="Positive Feedback"
+          value={92}
+          icon={<ThumbsUp size={20} />}
+          color="bg-green-500/15 text-green-500"
+        />
+        <StatCard
+          title="Negative Feedback"
+          value={36}
+          icon={<ThumbsDown size={20} />}
+          color="bg-red-500/15 text-red-500"
+        />
+        <StatCard
+          title="Sites Connected"
+          value={4}
+          icon={<Globe size={20} />}
+          color="bg-purple-500/15 text-purple-500"
+        />
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="w-full flex justify-center items-center lg:w-auto">
+          <TopChannel type="Channels" />
+        </div>
+        <div className="w-full flex justify-center items-center lg:w-auto">
+          <TopChannel type="Source" />
         </div>
       </div>
-
-      <h2>Top Visited Pages</h2>
-      <ul>
-        {analytics.topPages.map(({ url, count }) => (
-          <li key={url}>
-            {url} — {count} visits
-          </li>
-        ))}
-      </ul>
+      <DashboardAnalytics />
+      <VisitorAnalytics />
+      <RecentFeedback />
     </div>
   );
-};
-
-export default AnalyticsPage;
+}

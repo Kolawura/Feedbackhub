@@ -1,34 +1,27 @@
-// components/HomeNavbar.tsx
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Sun, Moon } from "lucide-react";
+import { useThemeStore } from "../../Store/useThemeStore";
 
 const HomeNavbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
+  const { theme, toggleTheme } = useThemeStore();
 
   const toggleMenu = () => setIsOpen(!isOpen);
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-    document.documentElement.classList.toggle("dark");
-  };
 
   return (
     <nav className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm">
       <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-        {/* Logo */}
         <Link
           to="/"
           className="text-xl font-bold text-gray-900 dark:text-white"
         >
           FeedbackHub
         </Link>
-
-        {/* Desktop Links */}
         <div className="hidden md:flex items-center space-x-6">
           <Link
             to="/login"
-            className="text-sm font-medium text-gray-700 dark:text-gray-200 hover:underline"
+            className="text-sm font-medium text-gray-700 dark:text-gray-200 hover:underline px-4 py-2 rounded-md transition"
           >
             Login
           </Link>
@@ -39,15 +32,23 @@ const HomeNavbar = () => {
             Register
           </Link>
           <button
-            onClick={toggleDarkMode}
+            onClick={toggleTheme}
             className="text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-white"
             aria-label="Toggle dark mode"
           >
-            {darkMode ? <Sun size={18} /> : <Moon size={18} />}
+            {theme === "dark" ? (
+              <Sun
+                size={25}
+                className="w-10 h-10 p-2 rounded-full border border-gray-300 dark:border-white/3 hover:bg-gray-100 dark:hover:bg-white/3"
+              />
+            ) : (
+              <Moon
+                size={25}
+                className="w-10 h-10 p-2 rounded-full border border-gray-300 dark:border-white/3 hover:bg-gray-100 dark:hover:bg-white/3"
+              />
+            )}
           </button>
         </div>
-
-        {/* Mobile Menu Button */}
         <button
           onClick={toggleMenu}
           className="md:hidden text-gray-600 dark:text-gray-300 focus:outline-none"
@@ -76,8 +77,6 @@ const HomeNavbar = () => {
           </svg>
         </button>
       </div>
-
-      {/* Mobile Menu */}
       {isOpen && (
         <div className="md:hidden px-6 pb-4 space-y-2">
           <Link
@@ -93,10 +92,10 @@ const HomeNavbar = () => {
             Register
           </Link>
           <button
-            onClick={toggleDarkMode}
+            onClick={toggleTheme}
             className="text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-white"
           >
-            {darkMode ? (
+            {theme === "dark" ? (
               <span className="flex items-center gap-2">
                 <Sun size={16} /> Light Mode
               </span>

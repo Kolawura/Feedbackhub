@@ -13,8 +13,8 @@ export default function FeedbackNotFound() {
         removed or the link is incorrect.
       </p>
       <Link
-        to="/feedback"
-        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+        to="/feedbacks"
+        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
       >
         Back to Feedback List
       </Link>
