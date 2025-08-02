@@ -1,23 +1,52 @@
-import { LockIcon } from "lucide-react";
+import { EyeIcon, EyeOffIcon, LockIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LoginFormData, loginSchema } from "../Schemas/LoginSchema";
 import { Button } from "../Components/ui/Button";
 import { useAuth } from "../Hooks/useAuth";
 import { toast } from "react-hot-toast";
+import { useEffect, useRef, useState } from "react";
 
 export const LoginForm = () => {
+  const [serverError, setServerError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting, dirtyFields, touchedFields },
+    setError,
+    formState: { errors, isSubmitting },
+    clearErrors,
   } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
+    mode: "onTouched",
   });
+
+  const errorTimers = useRef<{ [key in keyof LoginFormData]?: NodeJS.Timeout }>(
+    {}
+  );
+
+  useEffect(() => {
+    Object.entries(errors).forEach(([field]) => {
+      const key = field as keyof LoginFormData;
+
+      if (!errorTimers.current[key]) {
+        errorTimers.current[key] = setTimeout(() => {
+          clearErrors(key);
+          delete errorTimers.current[key];
+        }, 3000);
+      }
+    });
+
+    return () => {
+      Object.values(errorTimers.current).forEach(clearTimeout);
+      errorTimers.current = {};
+    };
+  }, [errors, clearErrors]);
 
   const { login } = useAuth();
 
   const onSubmit = async (data: LoginFormData) => {
+    setServerError(null);
     try {
       const response = await login({
         emailOrUsername: data.identifier,
@@ -25,34 +54,48 @@ export const LoginForm = () => {
       });
 
       if (response?.status !== 200) {
-        console.log(`Login failed for user: ${data.identifier}`);
+        setError("identifier", {
+          type: "manual",
+          message: "Invalid username or email",
+        });
+        setError("password", {
+          type: "manual",
+          message: "Invalid password",
+        });
+        setError("root", {
+          type: "manual",
+          message: "Invalid login credentials",
+        });
       } else {
         toast.success("Logged in successfully");
       }
+      throw new Error();
     } catch (err: any) {
       console.error("Login error:", err);
+
       if (err.response) {
-        const errorMessage =
-          err.response.data?.message ||
-          err.response.statusText ||
-          "Login failed";
+        const errorMessage = err.response.data?.message || "Login failed";
+        setError("root", {
+          type: "manual",
+          message: errorMessage,
+        });
         toast.error(errorMessage);
       } else if (err.request) {
-        toast.error("Network error - please try again");
+        setError("root", {
+          type: "manual",
+          message: "Network error - please try again",
+        });
       } else {
-        toast.error("An unexpected error occurred");
+        setError("root", {
+          type: "manual",
+          message: "An unexpected error occurred",
+        });
       }
     }
   };
 
-  const shouldShowError = (fieldName: keyof LoginFormData) => {
-    return (
-      (dirtyFields[fieldName] || touchedFields[fieldName]) && errors[fieldName]
-    );
-  };
-
   return (
-    <div className="flex justify-center item-center h-screen">
+    <div className="flex justify-center items-center h-screen">
       <div className="h-fit m-auto min-w-md w-full rounded-2xl p-4 md:p-8 shadow-input bg-white dark:bg-white/3 shadow-xl">
         <h2 className="font-bold text-xl text  text-neutral-800 dark:text-neutral-200">
           Welcome back
@@ -61,7 +104,11 @@ export const LoginForm = () => {
           Login to access your account
         </p>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-6">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          aria-disabled={isSubmitting}
+          className="mt-8 space-y-6"
+        >
           <div className="space-y-2">
             <label
               htmlFor="identifier"
@@ -74,9 +121,16 @@ export const LoginForm = () => {
               {...register("identifier")}
               className="flex h-10 w-full rounded-md border border-gray-300 dark:border-gray-700 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-100 dark:focus:ring-gray-400 dark:focus:ring-offset-gray-900"
               placeholder="username@example.com"
+              aria-invalid={errors.identifier ? "true" : "false"}
+              aria-describedby={
+                errors.identifier ? "identifier-error" : undefined
+              }
             />
-            {shouldShowError("identifier") && (
-              <p className="text-sm text-red-500">
+            {errors.identifier && (
+              <p
+                key={errors.identifier?.message}
+                className="text-sm text-red-500 transition-opacity duration-500 ease-in-out opacity-100"
+              >
                 {errors.identifier?.message}
               </p>
             )}
@@ -89,15 +143,29 @@ export const LoginForm = () => {
             >
               Password
             </label>
-            <input
-              id="password"
-              type="password"
-              {...register("password")}
-              className="flex h-10 w-full rounded-md border border-gray-300 dark:border-gray-700 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-100 dark:focus:ring-gray-400 dark:focus:ring-offset-gray-900"
-              placeholder="••••••••"
-            />
-            {shouldShowError("password") && (
-              <p className="text-sm text-red-500">{errors.password?.message}</p>
+            <div className="relative">
+              <input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                {...register("password")}
+                className="flex h-10 w-full rounded-md border border-gray-300 dark:border-gray-700 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-100 dark:focus:ring-gray-400 dark:focus:ring-offset-gray-900"
+                placeholder="••••••••"
+              />
+              <button
+                className="absolute bottom-2 right-3 h-5 w-5 flex items-center justify-center text-gray-500 hover:text-gray-700 focus:outline-none"
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+              </button>
+            </div>
+            {errors.password && (
+              <p
+                key={errors.password?.message}
+                className="text-sm text-red-500 transition-opacity duration-500 ease-in-out opacity-100"
+              >
+                {errors.password?.message}
+              </p>
             )}
           </div>
 
@@ -137,6 +205,11 @@ export const LoginForm = () => {
               </>
             )}
           </Button>
+          {errors.root && (
+            <p className="text-sm text-red-600 text-center mt-4">
+              {errors.root?.message}
+            </p>
+          )}
         </form>
 
         <div className="mt-4 text-center text-sm text-neutral-600 dark:text-neutral-400">
