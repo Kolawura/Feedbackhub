@@ -66,12 +66,12 @@ export const getFeedbackForSite = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  const { siteId } = req.params;
+  const siteId = req.params.siteId;
 
   try {
     const feedbacks = await Feedback.find({ siteId })
       .sort({ createdAt: -1 })
-      .populate("visitor");
+      .populate("visitorId");
     res.status(200).json({
       success: true,
       data: feedbacks,

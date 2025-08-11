@@ -162,6 +162,7 @@ export const loginAdmin = async (
 };
 
 export const getMe = async (req: Request, res: Response): Promise<void> => {
+  console.log("Fetching admin details");
   try {
     const accessToken = req.cookies.accessToken;
     if (!accessToken) {
