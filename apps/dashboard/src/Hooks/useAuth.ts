@@ -16,12 +16,11 @@ export const useAuth = () => {
       try {
         setLoading(true);
         console.log("Fetching user...");
-
         const res = await fetch.get("/api/auth/me", {
           signal: controller.signal,
         });
-
         if (!isMounted) return;
+        console.log("User fetched successfully:", res.data.data);
         setUser(res.data.data);
         setLoading(false);
       } catch (err) {

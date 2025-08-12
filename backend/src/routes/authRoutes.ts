@@ -6,10 +6,10 @@ import {
   refreshAccessToken,
   getMe,
 } from "../controllers/authController.js";
+import { addNewSite } from "../controllers/siteController.js";
 import { loginSchema, registerSchema } from "../schema/authSchema.js";
 import { validate } from "../middleware/zodValidate.js";
 import { protect } from "../middleware/authMiddleware.js";
-import { addNewSite } from "../controllers/siteController.js";
 
 const router = express.Router();
 

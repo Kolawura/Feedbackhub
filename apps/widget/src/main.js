@@ -316,7 +316,7 @@ document.addEventListener("DOMContentLoaded", () => {
       sessionStart: getSessionStart(),
       page: window.location.href,
       userInfo: getUserInfo(),
-      country: geo.country || "Unknown",
+      country: geo.country_name || "Unknown",
       region: geo.region || "",
       city: geo.city || "",
       pagesVisited: [
@@ -325,7 +325,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     try {
-      await fetch("https://your-api.com/track-visitor", {
+      await fetch("http://localhost:5000/api/visitor/track", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -346,7 +346,7 @@ document.addEventListener("DOMContentLoaded", () => {
       timestamp: new Date().toISOString(),
     };
 
-    fetch("https://your-api.com/track-page-visit", {
+    fetch("http://localhost:5000/api/visitor/track-page-visit", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(pageVisit),
@@ -395,7 +395,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 5000);
 
-      fetch(`https://your-api.com/validate-site?siteId=${SITE_ID}`, {
+      fetch(`http://localhost:5000/api/site/${SITE_ID}`, {
         signal: controller.signal,
       })
         .then((res) => {

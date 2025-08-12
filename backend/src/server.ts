@@ -10,6 +10,7 @@ import feedbackRoutes from "./routes/feedbackRoutes.js";
 import visitorRoutes from "./routes/visitorRoutes.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import cookieParser from "cookie-parser";
+import siteRoutes from "./routes/siteRoutes.js";
 
 dotenv.config();
 
@@ -37,8 +38,9 @@ app.use(limiter);
 
 // Routes
 app.use("/api/auth", authRoutes);
-app.use("/api/feedbacks", feedbackRoutes);
-app.use("/api/visitors", visitorRoutes);
+app.use("/api/feedback", feedbackRoutes);
+app.use("/api/visitor", visitorRoutes);
+app.use("/api/site", siteRoutes);
 
 // Health check
 app.get("/", (req: Request, res: Response) => {

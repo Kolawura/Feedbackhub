@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import fetch from "node-fetch";
 import Visitor from "../models/visitorModels.js";
+import { visitorSchema } from "../schema/visitorSchema.js";
 
 // @desc    Track visitor with geolocation
 // @route   POST /api/visitors/track
@@ -10,47 +11,21 @@ export const trackVisitor = async (
   res: Response
 ): Promise<void> => {
   try {
-    const visitorData = req.body;
+    const validateVisitor = visitorSchema.safeParse(req.body);
 
-    let ip =
-      (req.headers["x-forwarded-for"] as string)?.split(",")[0].trim() ||
-      req.socket.remoteAddress ||
-      "8.8.8.8";
-
-    if (ip.includes(",")) {
-      ip = ip.split(",")[0].trim();
+    if (!validateVisitor.success) {
+      res.status(400).json({
+        success: false,
+        message: "Invalid input",
+        errors: validateVisitor.error.flatten().fieldErrors,
+      });
+      return;
     }
-
-    if (ip === "::1" || ip === "127.0.0.1") {
-      ip = "8.8.8.8";
-    }
-
-    // Fetch geolocation data
-    const geoRes = await fetch(`https://ipapi.co/${ip}/json`);
-    const geoData = await geoRes.json();
-
-    if (!geoData.error) {
-      visitorData.country = geoData.country;
-      visitorData.region = geoData.regionName;
-      visitorData.city = geoData.city;
-    } else {
-      visitorData.country = "Unknown";
-      visitorData.region = "";
-      visitorData.city = "";
-    }
-
-    // Convert timestamps to Date objects
-    visitorData.visitTimestamp = new Date(visitorData.visitTimestamp);
-    visitorData.sessionStart = new Date(visitorData.sessionStart);
-
-    // Save to database
-    const visitorRecord = new Visitor(visitorData);
-    await visitorRecord.save();
-
+    const visitorData = await Visitor.create(validateVisitor);
     res.status(201).json({
       success: false,
       message: "Visitor tracked",
-      data: visitorRecord,
+      data: visitorData,
     });
   } catch (error) {
     console.error("Error tracking visitor:", error);

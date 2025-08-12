@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import Admin from "../models/adminModels.js";
 import { nanoid } from "nanoid";
+import Site from "../models/siteModels.js";
 
 export const addNewSite = async (
   req: Request,
@@ -19,10 +20,11 @@ export const addNewSite = async (
     const newSite = {
       siteId,
       name: req.body.name || `Site ${admin.AdminSite.length + 1}`,
-      createdAt: new Date(),
     };
+    const site = await Site.create(newSite);
 
-    admin.AdminSite.push(newSite);
+    admin.AdminSite.push(site.siteId);
+
     await admin.save();
 
     res.status(200).json({
@@ -33,6 +35,26 @@ export const addNewSite = async (
     });
   } catch (error) {
     console.error("Error adding site:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+export const validateSiteId = async (req: Request, res: Response) => {
+  try {
+    const { siteId } = req.params;
+
+    const site = await Site.exists({ siteId });
+    if (!site) {
+      res.status(404).json({
+        success: false,
+        message:
+          "Site not found, please check the site ID or create a new site",
+        errors: { siteId: "Invalid site ID" },
+      });
+      return;
+    }
+  } catch (error) {
+    console.error("Error validating siteId:", error);
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };

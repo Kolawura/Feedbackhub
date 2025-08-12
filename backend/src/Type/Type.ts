@@ -1,7 +1,8 @@
-export interface ISite {
+export interface ISite extends Document {
+  name: string;
   siteId: string;
-  name?: string;
-  createdAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }
 export interface IAdmin extends Document {
   _id: string;
@@ -10,7 +11,7 @@ export interface IAdmin extends Document {
   username: string;
   email: string;
   password: string;
-  AdminSite: ISite[];
+  AdminSite: string[];
   matchPassword: (enteredPassword: string) => Promise<boolean>;
 }
 export interface AdminDocument extends IAdmin, Document {
