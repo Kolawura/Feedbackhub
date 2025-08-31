@@ -85,13 +85,15 @@ export const registerAdmin = async (
         lastName: newAdmin.lastName,
         username: newAdmin.username,
         email: newAdmin.email,
+        adminSite: newAdmin.AdminSite,
       },
     });
   } catch (error) {
     console.error("Registration error:", error);
-    res
-      .status(500)
-      .json({ success: false, message: "Server error during registration" });
+    res.status(500).json({
+      success: false,
+      message: "Network or Server error during registration",
+    });
   }
 };
 
@@ -156,13 +158,14 @@ export const loginAdmin = async (
         lastName: admin.lastName,
         username: admin.username,
         email: admin.email,
+        adminSite: admin.AdminSite,
       },
     });
   } catch (error) {
     console.error("Login error:", error);
     res.status(500).json({
       success: false,
-      message: "Server error during login",
+      message: "Network or Server error during login",
     });
   }
 };
@@ -193,6 +196,7 @@ export const getMe = async (req: Request, res: Response): Promise<void> => {
         lastName: admin.lastName,
         username: admin.username,
         email: admin.email,
+        adminSite: admin.AdminSite,
       },
     });
   } catch (err) {
@@ -250,6 +254,7 @@ export const refreshAccessToken = async (
         lastName: admin.lastName,
         username: admin.username,
         email: admin.email,
+        adminSite: admin.AdminSite,
       },
     });
   } catch (error) {

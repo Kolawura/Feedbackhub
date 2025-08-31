@@ -36,7 +36,7 @@ export const useSetupStore = create<SetupState>()(
           set({ setupLoading: true });
 
           const response = await fetch.post(
-            "/api/sites/add",
+            "/api/site/add",
             { name },
             { withCredentials: true }
           );
@@ -47,10 +47,10 @@ export const useSetupStore = create<SetupState>()(
             set((state) => ({
               sites: [...state.sites, newSite],
             }));
-            toast.success("Site added successfully");
+            toast.success(response.data.message);
             return newSite;
           } else {
-            toast.error("Failed to add site");
+            toast.error(response.data.message);
             return null;
           }
         } catch (err: any) {

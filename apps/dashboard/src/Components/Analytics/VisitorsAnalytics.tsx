@@ -12,6 +12,8 @@ import {
 } from "chart.js";
 import { useVisitorStore } from "../../Store/useVisitorStore";
 import { useSiteIdStore } from "../../Store/useSiteIdStore";
+import Loader from "../ui/Loader";
+import { EmptyState } from "../ui/EmptyState";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
@@ -26,15 +28,15 @@ const VisitorAnalytics = () => {
   ];
   const { selectedSiteId } = useSiteIdStore();
 
-  const { analytics, fetchAnalytics, loading } = useVisitorStore();
+  const { analytics, loading } = useVisitorStore();
   const currentRange =
     timeRanges.find((range) => range.id === selected)?.value || "30days";
 
   useEffect(() => {
     if (selectedSiteId && !analytics[selectedSiteId]?.[currentRange]) {
-      fetchAnalytics(currentRange, selectedSiteId);
+      useVisitorStore.getState().fetchAnalytics(currentRange, selectedSiteId);
     }
-  }, [currentRange, analytics, fetchAnalytics, selectedSiteId]);
+  }, [currentRange, analytics, selectedSiteId]);
 
   const chartData = useMemo(
     () =>
@@ -85,6 +87,8 @@ const VisitorAnalytics = () => {
     },
   };
 
+  const noData = !loading && chartData.data.length === 0;
+
   return (
     <div className="bg-white dark:bg-white/3 shadow rounded-lg p-4 m-4">
       <div className="flex justify-between items-center mb-4">
@@ -125,8 +129,13 @@ const VisitorAnalytics = () => {
           transition={{ duration: 0.3, ease: "easeInOut" }}
           className="h-[400px] flex items-center justify-center"
         >
-          {loading && !analytics[currentRange] ? (
-            <span className="text-gray-500">Loading...</span>
+          {loading ? (
+            <Loader message="Loading visitor analytics..." />
+          ) : noData ? (
+            <EmptyState
+              message="No visitor data available"
+              variant="analytics"
+            />
           ) : (
             <Bar data={data} options={options} />
           )}

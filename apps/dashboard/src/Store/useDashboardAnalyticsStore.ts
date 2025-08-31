@@ -32,10 +32,11 @@ export const useDashboardAnalyticsStore = create<DashboardAnalyticsStore>(
         const res = await fetch(url);
 
         set({
-          analytics: res.data,
+          analytics: res.data.data,
           loading: false,
           error: null,
         });
+        if (!res.data.success) throw new Error(res.data.message);
       } catch (err: any) {
         set({
           loading: false,

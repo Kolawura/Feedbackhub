@@ -38,7 +38,7 @@ const WelcomeHeader = () => {
         Welcome to FeedbackHub
       </h1>
 
-      <p className="text-muted-foreground text-lg max-w-3xl">
+      <p className="text-muted-foreground lg:text-lg text-md max-w-3xl">
         You're just one step away from collecting valuable feedback from your
         users. Set up your feedback widget by generating a script tag to add to
         your website.
@@ -122,7 +122,7 @@ const SetupWidget = () => {
               Your Widget Script
             </label>
             <div className="relative">
-              <div className="p-3 bg-slate-100 dark:bg-slate-800 rounded-md font-mono text-sm overflow-x-auto">
+              <div className="p-3 bg-slate-100 dark:bg-slate-800 rounded-md font-mono md:text-sm overflow-x-auto">
                 {scriptTag}
               </div>
               <button

@@ -37,12 +37,12 @@ export const useAuth = () => {
             { signal: controller.signal }
           );
 
-          const meRes = await fetch.get("/api/auth/me", {
+          const res = await fetch.get("/api/auth/me", {
             signal: controller.signal,
           });
 
           if (!isMounted) return;
-          setUser(meRes.data.data);
+          setUser(res.data.data);
           setError(null);
         } catch (refreshError: any) {
           console.error("Refresh failed:", refreshError);

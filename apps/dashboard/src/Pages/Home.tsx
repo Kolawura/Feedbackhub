@@ -1,4 +1,3 @@
-import React from "react";
 import { Button } from "../Components/ui/Button";
 import { useNavigate } from "react-router-dom";
 import { Step } from "../Components/Home/Step";

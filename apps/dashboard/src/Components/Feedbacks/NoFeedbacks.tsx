@@ -1,5 +1,3 @@
-import React from "react";
-
 const NoFeedbacks = () => {
   return (
     <div className="flex flex-col items-center justify-center py-20 text-center text-gray-500 dark:text-gray-400">

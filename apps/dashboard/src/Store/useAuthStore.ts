@@ -6,6 +6,7 @@ interface User {
   lastName: string;
   email: string;
   username: string;
+  adminSite: string[];
 }
 
 interface AuthState {

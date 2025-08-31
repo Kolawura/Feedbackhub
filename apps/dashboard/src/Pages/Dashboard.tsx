@@ -22,6 +22,8 @@ import { motion } from "framer-motion";
 import { RecentFeedbackItem } from "../Components/Feedbacks/RecentFeedbackItem";
 import { useNavigate } from "react-router-dom";
 import { useFeedbackStore } from "../Store/useFeedbackStore";
+import Loader from "../Components/ui/Loader";
+import { EmptyState } from "../Components/ui/EmptyState";
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -96,38 +98,42 @@ const Dashboard: React.FC = () => {
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: 0.6, duration: 0.5 }}
       >
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle>Recent Feedback</CardTitle>
-              <CardDescription>
-                Latest feedback submissions from users
-              </CardDescription>
-            </div>
-            <Button variant="outline" onClick={() => navigate("/feedbacks")}>
-              View All
-              <ArrowUpRight className="ml-2 h-4 w-4" />
-            </Button>
-          </CardHeader>
-          {loading ? (
-            <div>Loading feedbacks...</div>
-          ) : feedbacks ? (
-            <CardContent>
-              <div className="space-y-4">
-                {recentFeedback.map((feedback) => (
-                  <RecentFeedbackItem
-                    key={feedback.id}
-                    feedback={feedback}
-                    getStatusIcon={getStatusIcon}
-                    getPriorityColor={getPriorityColor}
-                  />
-                ))}
+        {feedbacks.length === 0 ? (
+          <EmptyState message="No feedback data available" />
+        ) : loading ? (
+          <Loader message="Loading feedbacks..." />
+        ) : (
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Recent Feedback</CardTitle>
+                <CardDescription>
+                  Latest feedback submissions from users
+                </CardDescription>
               </div>
-            </CardContent>
-          ) : (
-            <div>{error}</div>
-          )}
-        </Card>
+              <Button variant="outline" onClick={() => navigate("/feedbacks")}>
+                View All
+                <ArrowUpRight className="ml-2 h-4 w-4" />
+              </Button>
+            </CardHeader>
+            {feedbacks ? (
+              <CardContent>
+                <div className="space-y-4">
+                  {recentFeedback.map((feedback) => (
+                    <RecentFeedbackItem
+                      key={feedback.id}
+                      feedback={feedback}
+                      getStatusIcon={getStatusIcon}
+                      getPriorityColor={getPriorityColor}
+                    />
+                  ))}
+                </div>
+              </CardContent>
+            ) : (
+              <div>{error}</div>
+            )}
+          </Card>
+        )}
       </motion.div>
     </div>
   );

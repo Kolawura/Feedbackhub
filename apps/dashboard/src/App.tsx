@@ -5,7 +5,7 @@ import Feedback from "./Pages/Feedback";
 import FeedbackDetail from "./Components/Feedbacks/[id]";
 import { RegisterForm } from "./Pages/RegisterForm";
 import { LoginForm } from "./Pages/LoginForm";
-import AnalyticsPage from "./Pages/Analytics";
+import { Analytics } from "./Pages/Analytics";
 import { Home } from "./Pages/Home";
 import { PublicLayout } from "./Components/Layout/PublicLayout";
 import { ProtectedRoute } from "./Components/auth/ProtectedRoute";
@@ -16,7 +16,6 @@ import { SetupPage } from "./Pages/SetupPage";
 import { Toaster } from "react-hot-toast";
 import { useThemeStore } from "./Store/useThemeStore";
 import ErrorPage from "./Pages/ErrorPage";
-import { useAuthStore } from "./Store/useAuthStore";
 import { useAuth } from "./Hooks/useAuth";
 
 const App = () => {
@@ -83,7 +82,7 @@ const App = () => {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/feedbacks" element={<Feedback />} />
             <Route path="/feedback/:id" element={<FeedbackDetail />} />
-            <Route path="/analytics" element={<AnalyticsPage />} />
+            <Route path="/analytics" element={<Analytics />} />
             <Route path="/settings" element={<div>Settings Page</div>} />
           </Route>
         </Route>

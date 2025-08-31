@@ -12,13 +12,13 @@ import ErrorPage from "./ErrorPage";
 import NoFeedbacks from "../Components/Feedbacks/NoFeedbacks";
 
 const Feedback: React.FC = () => {
-  const { feedbacks, loading, error, fetchFeedbacks } = useFeedbackStore();
+  const { feedbacks, loading, error } = useFeedbackStore();
 
   const { siteIds, selectedSiteId, selectSiteId } = useSiteIdStore();
 
   useEffect(() => {
-    fetchFeedbacks();
-  }, [fetchFeedbacks]);
+    useFeedbackStore.getState().fetchFeedbacks();
+  }, []);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -94,7 +94,7 @@ const Feedback: React.FC = () => {
   if (error) toast.error(error);
   if (loading) return <LoadingPage />;
   if (error) return <ErrorPage errorMessage={error} />;
-  // if (feedbacks.length === 0) return <NoFeedbacks />;
+  if (feedbacks.length === 0) return <NoFeedbacks />;
 
   return (
     <div className="space-y-6 text-gray-900 dark:text-gray-100 transition-all duration-200">
