@@ -17,6 +17,13 @@ export interface IAdmin extends Document {
 export interface AdminDocument extends IAdmin, Document {
   isModified(field: string): boolean;
 }
+declare global {
+  namespace Express {
+    export interface Request {
+      user?: AdminDocument;
+    }
+  }
+}
 
 export interface JwtPayload {
   id: string;

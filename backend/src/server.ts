@@ -18,20 +18,14 @@ const app: Application = express();
 
 connectDB();
 
-if (process.env.NODE_ENV === "production") {
-  app.use(helmet());
-  app.use(
-    cors({
-      origin: "http://localhost:5173",
-      credentials: true,
-    })
-  );
-} else {
-  app.use(morgan("dev"));
-  app.use(cors());
-}
+app.use(helmet());
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
 
-// add this before routes
 app.use(cookieParser());
 app.use(express.json());
 app.use(limiter);

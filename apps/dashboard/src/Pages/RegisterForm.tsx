@@ -1,4 +1,4 @@
-import { UserPlus } from "lucide-react";
+import { EyeIcon, EyeOffIcon, UserPlus } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { RegisterFormData, registerSchema } from "../Schemas/RegisterSchema";
@@ -6,9 +6,11 @@ import { Button } from "../Components/ui/Button";
 import { toast } from "react-hot-toast";
 import { useAuth } from "../Hooks/useAuth";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 export const RegisterForm = () => {
   const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
   const {
     register,
     handleSubmit,
@@ -29,14 +31,11 @@ export const RegisterForm = () => {
         password: data.password,
       });
 
-      if (response?.status !== 201) {
-        throw new Error(
-          (await response?.data?.message) || "Registration failed"
-        );
+      if (!response.success) {
+        throw new Error(response.error || "Registration failed");
       }
 
       toast.success("Account created successfully!");
-      navigate("/dashboard");
     } catch (err: any) {
       console.error("Registration error:", err);
     }
@@ -126,12 +125,21 @@ export const RegisterForm = () => {
             <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
               Password
             </label>
-            <input
-              type="password"
-              {...register("password")}
-              className="flex h-10 w-full rounded-md border border-gray-300 dark:border-gray-700 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-100 dark:focus:ring-gray-400 dark:focus:ring-offset-gray-900"
-              placeholder="••••••••"
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                {...register("password")}
+                className="flex h-10 w-full rounded-md border border-gray-300 dark:border-gray-700 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-100 dark:focus:ring-gray-400 dark:focus:ring-offset-gray-900"
+                placeholder="••••••••"
+              />
+              <button
+                className="absolute bottom-2 right-3 h-5 w-5 flex items-center justify-center text-gray-500 hover:text-gray-700 focus:outline-none"
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+              </button>
+            </div>
             {shouldShowError("password") && (
               <p className="text-sm text-red-500">{errors.password?.message}</p>
             )}

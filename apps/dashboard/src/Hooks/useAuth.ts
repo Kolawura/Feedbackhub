@@ -1,36 +1,41 @@
-import { useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useAuthStore } from "../Store/useAuthStore";
 import { fetch } from "../lib/axios";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import { AxiosError } from "axios";
 
 export const useAuth = () => {
   const navigate = useNavigate();
-  const { user, setUser, logoutUser, loading, setLoading } = useAuthStore();
+  const { user, setUser, logoutUser, loading, setLoading, setError, error } =
+    useAuthStore();
+  const { pathname } = useLocation();
+  let isMounted = true;
+  const controller = new AbortController();
+  const refreshAttempted = useRef(false);
 
-  useEffect(() => {
-    let isMounted = true;
-    const controller = new AbortController();
-
-    const fetchUser = async () => {
-      try {
-        setLoading(true);
-        console.log("Fetching user...");
-        const res = await fetch.get("/api/auth/me", {
-          signal: controller.signal,
-        });
-        if (!isMounted) return;
-        console.log("User fetched successfully:", res.data.data);
-        setUser(res.data.data);
-        setLoading(false);
-      } catch (err) {
-        if (!isMounted) return;
-        console.log("Session expired, refreshing...", err);
-
+  const fetchUser = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      console.log("Fetching user...");
+      const res = await fetch.get("/api/auth/me", {
+        signal: controller.signal,
+      });
+      console.log("User fetched successfully:", res.data.data);
+      setUser(res.data.data);
+    } catch (err: any) {
+      console.error("Session expired, refreshing...", err);
+      setError("Session expired. Attempting refresh...");
+      if (!isMounted) return;
+      if (!refreshAttempted.current) {
+        refreshAttempted.current = true;
         try {
-          await fetch.post("/api/auth/refresh-token", {
-            signal: controller.signal,
-          });
+          await fetch.post(
+            "/api/auth/refresh-token",
+            {},
+            { signal: controller.signal }
+          );
 
           const meRes = await fetch.get("/api/auth/me", {
             signal: controller.signal,
@@ -38,41 +43,72 @@ export const useAuth = () => {
 
           if (!isMounted) return;
           setUser(meRes.data.data);
-        } catch (refreshError) {
+          setError(null);
+        } catch (refreshError: any) {
           console.error("Refresh failed:", refreshError);
+          setError(`Authentication failed.${refreshError.message}`);
           logoutUser();
-          // navigate("/");
         }
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-          console.log("Loading complete");
-        }
+      } else {
+        console.error("Already attempted refresh. Logging out.");
+        logoutUser();
       }
-    };
+    } finally {
+      if (isMounted) {
+        setLoading(false);
+        console.log("Loading complete");
+      }
+    }
+  };
 
+  useEffect(() => {
+    if (pathname === "/login" || pathname === "/register") {
+      console.log("Skipping user fetch on auth pages");
+      setLoading(false);
+      return;
+    }
+    const controller = new AbortController();
+    isMounted = true;
     fetchUser();
-    setLoading(false);
-
     return () => {
       isMounted = false;
       controller.abort();
-      console.log("Cleanup done");
+      console.log("effect cleanup");
     };
-  }, [user]);
+  }, []);
 
-  const login = async (data: { emailOrUsername: string; password: string }) => {
+  const extractErrorMessage = (
+    err: unknown,
+    fallback = "Something went wrong"
+  ) => {
+    if (err instanceof AxiosError) {
+      return err.response?.data?.message || err.message || fallback;
+    } else if (err instanceof Error) {
+      return err.message || fallback;
+    }
+    return fallback;
+  };
+  const login = async (data: { identifier: string; password: string }) => {
     try {
+      setLoading(true);
+      setError(null);
       const res = await fetch.post("/api/auth/login", data, {
         withCredentials: true,
       });
+      console.log(res.data);
       setUser(res.data.user);
       toast.success("Welcome back!");
       navigate("/dashboard");
-      return res;
+      return { success: true, user: res.data.user };
     } catch (err) {
-      toast.error("Login failed. Check your credentials.");
-      console.error("Login error:", err);
+      const message = extractErrorMessage(
+        err,
+        "Login failed. Check credentials."
+      );
+      toast.error(message);
+      return { success: false, error: message };
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -84,40 +120,51 @@ export const useAuth = () => {
     password: string;
   }) => {
     try {
+      setLoading(true);
+      setError(null);
       const res = await fetch.post("/api/auth/register", data, {
         withCredentials: true,
       });
       setUser(res.data.user);
       toast.success("Registration successful! Welcome!");
       navigate("/dashboard/setup");
-      return res;
-    } catch (error) {
-      toast.error("Registration failed. Please try again.");
-      console.error("Registration error:", error);
+      return { success: true, user: res.data.user };
+    } catch (err) {
+      const message = extractErrorMessage(
+        err,
+        "Registration failed. Please try again."
+      );
+      toast.error(message);
+      return { success: false, error: message };
+    } finally {
+      setLoading(false);
     }
   };
 
   const logout = async () => {
     try {
-      await fetch.post("/api/auth/logout", null, {
+      const res = await fetch.post("/api/auth/logout", null, {
         withCredentials: true,
       });
       logoutUser();
       toast.success("Logged out successfully!");
       navigate("/");
-    } catch (error) {
-      toast.error("Logout failed. Please try again.");
-      console.error("Logout error:", error);
+    } catch (err) {
+      const message = extractErrorMessage(
+        err,
+        "Logout failed. Please try again."
+      );
+      setError(message);
+      toast.error(message);
     }
   };
-  console.log(loading);
+  console.log(loading, error);
 
   return {
-    user,
     loading,
+    error,
     login,
     registerAdmin,
     logout,
-    isAuthenticated: !!user,
   };
 };

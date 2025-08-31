@@ -8,7 +8,7 @@ import { toast } from "react-hot-toast";
 import { useEffect, useRef, useState } from "react";
 
 export const LoginForm = () => {
-  const [serverError, setServerError] = useState<string | null>(null);
+  // const [serverError, setServerError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
   const {
@@ -18,6 +18,7 @@ export const LoginForm = () => {
     formState: { errors, isSubmitting },
     clearErrors,
   } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
     mode: "onTouched",
   });
 
@@ -46,14 +47,14 @@ export const LoginForm = () => {
   const { login } = useAuth();
 
   const onSubmit = async (data: LoginFormData) => {
-    setServerError(null);
     try {
       const response = await login({
-        emailOrUsername: data.identifier,
+        identifier: data.identifier,
         password: data.password,
       });
 
-      if (response?.status !== 200) {
+      if (!response.success) {
+        console.log(response.error);
         setError("identifier", {
           type: "manual",
           message: "Invalid username or email",
@@ -64,15 +65,13 @@ export const LoginForm = () => {
         });
         setError("root", {
           type: "manual",
-          message: "Invalid login credentials",
+          message: response.error || "Invalid login credentials",
         });
       } else {
         toast.success("Logged in successfully");
       }
-      throw new Error();
     } catch (err: any) {
       console.error("Login error:", err);
-
       if (err.response) {
         const errorMessage = err.response.data?.message || "Login failed";
         setError("root", {
@@ -168,6 +167,14 @@ export const LoginForm = () => {
               </p>
             )}
           </div>
+          <div className="mt-4 text-right text-xs text-neutral-600 dark:text-neutral-400">
+            <a
+              href="#"
+              className="text-blue-600 hover:underline dark:text-blue-400"
+            >
+              Forgot password?
+            </a>
+          </div>
 
           <Button
             type="submit"
@@ -213,14 +220,42 @@ export const LoginForm = () => {
         </form>
 
         <div className="mt-4 text-center text-sm text-neutral-600 dark:text-neutral-400">
+          Don't have an account?{" "}
           <a
-            href="#"
+            href="/register"
             className="text-blue-600 hover:underline dark:text-blue-400"
           >
-            Forgot password?
+            Sign up
           </a>
         </div>
       </div>
     </div>
   );
 };
+
+// Suggested improvements for "Remember Me" functionality:
+// 1. Backend logic
+// When generating the refresh token, set a longer expiration if "Remember Me" is checked.
+
+// in your login controller
+// res.cookie("refreshToken", refreshToken, {
+//   httpOnly: true,
+//   secure: true,
+//   sameSite: "strict",
+//   path: "/api/auth/refresh",
+//   maxAge: rememberMe ? 30 * 24 * 60 * 60 * 1000 : 7 * 24 * 60 * 60 * 1000, // 30 days if checked
+// });
+
+// 2. Frontend logic
+
+// On your login form:
+
+// const [rememberMe, setRememberMe] = useState(false);
+
+// const onSubmit = async (data) => {
+//   await loginAdmin({
+//     username: data.username,
+//     password: data.password,
+//     rememberMe, // pass to backend
+//   });
+// };

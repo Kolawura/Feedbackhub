@@ -64,15 +64,15 @@ export const registerAdmin = async (
 
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
-      secure: true,
-      sameSite: "strict",
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
       maxAge: 15 * 60 * 1000,
     });
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: true,
-      sameSite: "strict",
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -120,6 +120,12 @@ export const loginAdmin = async (
       $or: [{ username: identifier }, { email: identifier }],
     });
 
+    console.log("Admin found?", admin);
+    console.log(
+      "Password correct?",
+      admin && (await admin.matchPassword(password))
+    );
+
     if (!admin || !(await admin.matchPassword(password))) {
       res.status(401).json({ success: false, message: "Invalid credentials" });
       return;
@@ -129,15 +135,15 @@ export const loginAdmin = async (
 
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
-      secure: true,
-      sameSite: "strict",
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
       maxAge: 15 * 60 * 1000,
     });
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: true,
-      sameSite: "strict",
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -223,8 +229,8 @@ export const refreshAccessToken = async (
 
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
-      secure: true,
-      sameSite: "strict",
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
       maxAge: 15 * 60 * 1000,
     });
 

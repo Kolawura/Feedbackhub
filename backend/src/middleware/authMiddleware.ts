@@ -14,41 +14,34 @@ export const protect = async (
   res: Response,
   next: NextFunction
 ): Promise<void> => {
-  let token: string | undefined;
-
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith("Bearer")
-  ) {
-    try {
-      token = req.headers.authorization.split(" ")[1];
-      if (!token) {
-        res.status(401).json({ message: "Unauthorized: No token provided" });
-        return;
-      }
-      const secret = process.env.JWT_SECRET;
-      if (!secret) {
-        throw new Error("JWT_SECRET is not defined in environment variables");
-      }
-
-      const decoded = jwt.verify(token, secret) as JwtPayload;
-
-      const admin = (await Admin.findById(decoded.id).select(
-        "-password"
-      )) as AdminDocument;
-      req.admin = admin;
-
-      if (!req.admin) {
-        res.status(401).json({ message: "Unauthorized: Admin not found" });
-        return;
-      }
-
-      next();
-    } catch (error) {
-      console.error("Auth middleware error:", error);
-      res.status(401).json({ message: "Unauthorized: Invalid token" });
+  try {
+    const token = req.cookies.accessToken;
+    if (!token) {
+      res.status(401).json({ message: "Unauthorized: No token provided" });
+      return;
     }
-  } else {
-    res.status(401).json({ message: "Unauthorized: No token provided" });
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+      throw new Error("JWT_SECRET is not defined in environment variables");
+    }
+
+    const decoded = jwt.verify(token, secret) as JwtPayload;
+    console.log(decoded);
+
+    const admin = (await Admin.findById(decoded.id).select(
+      "-password"
+    )) as AdminDocument;
+    req.admin = admin;
+    console.log(admin);
+
+    if (!req.admin) {
+      res.status(401).json({ message: "Unauthorized: Admin not found" });
+      return;
+    }
+
+    next();
+  } catch (error) {
+    console.error("Auth middleware error:", error);
+    res.status(401).json({ message: "Unauthorized: Invalid token" });
   }
 };

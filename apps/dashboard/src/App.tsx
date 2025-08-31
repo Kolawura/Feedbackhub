@@ -1,7 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import Dashboard from "./Pages/Dashboard";
-import FeedbackList from "./Pages/Feedback";
+import Feedback from "./Pages/Feedback";
 import FeedbackDetail from "./Components/Feedbacks/[id]";
 import { RegisterForm } from "./Pages/RegisterForm";
 import { LoginForm } from "./Pages/LoginForm";
@@ -15,6 +15,8 @@ import LoadingPage from "./Pages/LoadingPage";
 import { SetupPage } from "./Pages/SetupPage";
 import { Toaster } from "react-hot-toast";
 import { useThemeStore } from "./Store/useThemeStore";
+import ErrorPage from "./Pages/ErrorPage";
+import { useAuthStore } from "./Store/useAuthStore";
 import { useAuth } from "./Hooks/useAuth";
 
 const App = () => {
@@ -23,7 +25,7 @@ const App = () => {
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { theme } = useThemeStore();
-  const { loading } = useAuth();
+  const { loading, error } = useAuth();
 
   console.log("BASE URL:", import.meta.env.VITE_API_BASE_URL);
 
@@ -52,6 +54,7 @@ const App = () => {
   if (loading) {
     return <LoadingPage />;
   }
+  if (error) return <ErrorPage errorMessage={error} />;
 
   return (
     <>
@@ -78,7 +81,7 @@ const App = () => {
             }
           >
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/feedbacks" element={<FeedbackList />} />
+            <Route path="/feedbacks" element={<Feedback />} />
             <Route path="/feedback/:id" element={<FeedbackDetail />} />
             <Route path="/analytics" element={<AnalyticsPage />} />
             <Route path="/settings" element={<div>Settings Page</div>} />

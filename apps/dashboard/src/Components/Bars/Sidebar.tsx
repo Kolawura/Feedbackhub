@@ -65,6 +65,7 @@ const Sidebar = ({
           const isActive = location.pathname === link.path;
           return (
             <Link
+              key={link.name}
               to={link.path}
               className={`flex items-center gap-2 rounded-lg px-4 py-2 text-lg h-12 ${
                 Expand ? "" : "justify-center"

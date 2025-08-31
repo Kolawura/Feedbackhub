@@ -1,10 +1,9 @@
 import { Request, Response } from "express";
-import fetch from "node-fetch";
 import Visitor from "../models/visitorModels.js";
 import { visitorSchema } from "../schema/visitorSchema.js";
 
 // @desc    Track visitor with geolocation
-// @route   POST /api/visitors/track
+// @route   POST /api/visitor/track
 // @access  Public
 export const trackVisitor = async (
   req: Request,
@@ -93,41 +92,66 @@ export const appendPageVisit = async (
 };
 
 // @desc    Get analytics summary for a site
-// @route   GET /api/visitors/analytics/:siteId
+// @route   GET /api/visitor/analytics/:siteId
 // @access  Private (Admin)
 export const getAnalytics = async (
   req: Request,
   res: Response
 ): Promise<void> => {
   const { siteId } = req.params;
+  const { range } = req.query; // e.g. "30days", "12months", "7days", "4weeks", "24hours"
 
   try {
-    const visitors = await Visitor.find({ siteId });
+    let startDate = new Date();
+    let groupFormat: string;
 
-    const totalVisitors = visitors.length;
-    const totalPageViews = visitors.reduce(
-      (acc, visitor) => acc + visitor.pagesVisited.length,
-      0
-    );
+    switch (range) {
+      case "30days":
+        startDate.setDate(startDate.getDate() - 30);
+        groupFormat = "%d"; // group by day
+        break;
+      case "12months":
+        startDate.setFullYear(startDate.getFullYear() - 1);
+        groupFormat = "%b"; // group by month name (Jan, Feb…)
+        break;
+      case "7days":
+        startDate.setDate(startDate.getDate() - 7);
+        groupFormat = "%a"; // group by weekday (Mon, Tue…)
+        break;
+      case "4weeks":
+        startDate.setDate(startDate.getDate() - 28);
+        groupFormat = "%G-W%V";
+        // ISO year-week format e.g. "2025-W33"
+        break;
+      case "24hours":
+        startDate.setDate(startDate.getDate() - 1);
+        groupFormat = "%H:00"; // group by hour
+        break;
+      default:
+        startDate.setDate(startDate.getDate() - 30);
+        groupFormat = "%d";
+    }
 
-    const mostVisitedPages: Record<string, number> = {};
+    const visitors = await Visitor.aggregate([
+      { $match: { siteId, visitTimestamp: { $gte: startDate } } },
+      {
+        $group: {
+          _id: {
+            $dateToString: { format: groupFormat, date: "$visitTimestamp" },
+          },
+          count: { $sum: 1 },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]);
 
-    visitors.forEach((visitor) => {
-      visitor.pagesVisited.forEach((visit) => {
-        if (visit.url) {
-          mostVisitedPages[visit.url] = (mostVisitedPages[visit.url] || 0) + 1;
-        }
-      });
-    });
-
-    const sortedPages = Object.entries(mostVisitedPages)
-      .sort((a, b) => b[1] - a[1])
-      .map(([url, count]) => ({ url, count }));
+    const labels = visitors.map((v) => v._id);
+    const data = visitors.map((v) => v.count);
 
     res.status(200).json({
-      totalVisitors,
-      totalPageViews,
-      topPages: sortedPages.slice(0, 5),
+      labels,
+      data,
+      label: range,
     });
   } catch (error) {
     console.error("Analytics error:", error);

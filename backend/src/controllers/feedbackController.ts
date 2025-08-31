@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import Feedback from "../models/feedbackModels.js";
 import { feedbackSchema } from "../schema/feedbackSchema.js";
+import Site from "../models/siteModels.js";
 
 // @desc    Submit feedback (public)
 // @route   POST /api/feedback
@@ -56,6 +57,36 @@ export const submitFeedback = async (
       success: false,
       message: "Failed to submit feedback",
     });
+  }
+};
+
+// @desc    Get all feedback for an admin
+// @route   GET /api/feedback/allFeedbacks
+// @access  Private (Admin)
+export const getAdminFeedbacks = async (req: Request, res: Response) => {
+  try {
+    if (!req.admin) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
+    console.log(req.admin);
+    const adminId = req.admin._id;
+
+    // get all sites owned by this admin
+    const sites = await Site.find({ admin: adminId }).select("siteId");
+    const siteIds = sites.map((s) => s.siteId);
+
+    // get feedbacks for these sites
+    const feedbacks = await Feedback.find({ siteId: { $in: siteIds } });
+
+    res.status(200).json({
+      success: true,
+      data: feedbacks,
+      message: "Feedback fetched successfully",
+    });
+  } catch (err) {
+    console.error("Error fetching admin feedbacks:", err);
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -116,5 +147,67 @@ export const getFeedbackByVisitor = async (req: Request, res: Response) => {
       success: false,
       message: "Server error",
     });
+  }
+};
+
+export const getDashboardAnalytics = async (req: Request, res: Response) => {
+  try {
+    const { siteId } = req.params;
+    if (!req.user) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
+
+    const filter: any = { admin: req.user._id };
+    if (siteId) filter.site = siteId;
+
+    const feedbacks = await Feedback.find(filter);
+
+    // 🔹 Generate last 5 months dynamically
+    const now = new Date();
+    const labels: string[] = [];
+    const trend: number[] = [];
+
+    for (let i = 4; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthLabel = d.toLocaleString("default", { month: "short" }); // e.g. "Aug"
+      labels.push(monthLabel);
+      trend.push(0);
+    }
+
+    // 🔹 Count feedback per month
+    feedbacks.forEach((fb) => {
+      if (fb.createdAt) {
+        const fbDate = new Date(fb.createdAt);
+        const monthDiff =
+          (now.getFullYear() - fbDate.getFullYear()) * 12 +
+          (now.getMonth() - fbDate.getMonth());
+
+        if (monthDiff >= 0 && monthDiff < 5) {
+          const index = 4 - monthDiff; // reverse index to match labels order
+          trend[index]++;
+        }
+      }
+    });
+
+    // 🔹 Positive vs Negative
+    const positive = feedbacks.filter(
+      (fb) =>
+        (fb.category === "feature" ||
+          fb.category === "improvement" ||
+          fb.category === "other") &&
+        (fb.priority === "medium" || fb.priority === "low")
+    ).length;
+
+    const negative = feedbacks.filter(
+      (fb) =>
+        fb.category === "bug" &&
+        (fb.priority === "critical" || fb.priority === "high")
+    ).length;
+
+    res.json({ labels, trend, positive, negative });
+  } catch (err) {
+    console.error("Analytics error:", err);
+    res.status(500).json({ message: "Server error" });
   }
 };

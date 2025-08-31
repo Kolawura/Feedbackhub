@@ -1,12 +1,18 @@
-import React from "react";
 import { Link } from "react-router-dom";
-
-const dummyFeedback = [
-  { id: "1", name: "Ayo", title: "UI Issue", feedback: "Button is broken" },
-  { id: "2", name: "Tolu", title: "Performance", feedback: "Page is slow" },
-];
+import { useFeedbackStore } from "../../Store/useFeedbackStore";
+import { useEffect } from "react";
+import LoadingPage from "../../Pages/LoadingPage";
+import { Feedback } from "../../Type";
 
 const RecentFeedback = () => {
+  const { feedbacks, loading, error, fetchFeedbacks } = useFeedbackStore();
+  useEffect(() => {
+    fetchFeedbacks();
+  }, [fetchFeedbacks]);
+
+  if (loading) return <LoadingPage />;
+
+  const recentFeedbacks: Feedback[] = feedbacks.slice(0, 3);
   return (
     <div className="bg-white dark:bg-white/3 shadow rounded-lg p-4">
       <h2 className="text-lg font-semibold mb-4 text-gray-600 dark:text-gray-100">
@@ -21,12 +27,12 @@ const RecentFeedback = () => {
           </tr>
         </thead>
         <tbody>
-          {dummyFeedback.map((fb) => (
+          {recentFeedbacks.map((fb) => (
             <tr
               key={fb.id}
               className="border-t border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300"
             >
-              <td className="py-2">{fb.name}</td>
+              <td className="py-2">{fb.sender.name}</td>
               <td className="py-2">{fb.title}</td>
               <td className="py-2">
                 <Link
