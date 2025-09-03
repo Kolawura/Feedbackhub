@@ -11,9 +11,9 @@ import {
   Legend,
 } from "chart.js";
 import { useVisitorStore } from "../../Store/useVisitorStore";
-import { useSiteIdStore } from "../../Store/useSiteIdStore";
 import Loader from "../ui/Loader";
 import { EmptyState } from "../ui/EmptyState";
+import { useSetupStore } from "../../Store/useSetupStore";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
@@ -26,7 +26,7 @@ const VisitorAnalytics = () => {
     { id: "optionFour", label: "7 days", value: "7days" },
     { id: "optionFive", label: "24 hours", value: "24hours" },
   ];
-  const { selectedSiteId } = useSiteIdStore();
+  const { selectedSiteId } = useSetupStore();
 
   const { analytics, loading } = useVisitorStore();
   const currentRange =

@@ -23,10 +23,9 @@ export const addNewSite = async (
     };
     const site = await Site.create(newSite);
 
-    admin.AdminSite.push(site.siteId);
+    admin.AdminSite.push({ siteId: site.siteId, name: site.name });
 
     await admin.save();
-
     res.status(200).json({
       success: true,
       message: "New site added successfully",

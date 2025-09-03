@@ -9,6 +9,7 @@ import {
   SelectValue,
 } from "../ui/Select";
 import { Button } from "../ui/Button";
+import { Site } from "../../Type";
 
 export const FilterControls: React.FC<{
   searchTerm: string;
@@ -20,7 +21,7 @@ export const FilterControls: React.FC<{
   categoryFilter: string;
   setCategoryFilter: (category: string) => void;
   onClearFilters: () => void;
-  siteIds: string[];
+  sites: Site[];
   selectedSiteId: string | null;
   selectSiteId: (siteId: string) => void;
 }> = ({
@@ -33,7 +34,7 @@ export const FilterControls: React.FC<{
   categoryFilter,
   setCategoryFilter,
   onClearFilters,
-  siteIds,
+  sites,
   selectedSiteId,
   selectSiteId,
 }) => {
@@ -98,10 +99,10 @@ export const FilterControls: React.FC<{
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Sites</SelectItem>
-              {siteIds.map((site) => {
+              {sites.map((site) => {
                 return (
-                  <SelectItem key={site} value={site}>
-                    {site}
+                  <SelectItem key={site.siteId} value={site.siteId}>
+                    {site.name}
                   </SelectItem>
                 );
               })}

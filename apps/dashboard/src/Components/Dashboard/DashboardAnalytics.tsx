@@ -14,13 +14,12 @@ import {
 import { Chart } from "react-chartjs-2";
 import { useDashboardAnalyticsStore } from "../../Store/useDashboardAnalyticsStore";
 import LoadingPage from "../../Pages/LoadingPage";
-import { useSiteIdStore } from "../../Store/useSiteIdStore";
 import ErrorPage from "../../Pages/ErrorPage";
 import { EmptyState } from "../ui/EmptyState";
 import { ChartSkeleton } from "./ChartSkeleton";
 import Loader from "../ui/Loader";
+import { useSetupStore } from "../../Store/useSetupStore";
 
-// ✅ Register required Chart.js components ONCE
 ChartJS.register(
   ArcElement,
   LineElement,
@@ -34,7 +33,7 @@ ChartJS.register(
 
 export const DashboardAnalytics = () => {
   const { analytics, loading, error } = useDashboardAnalyticsStore();
-  const { selectedSiteId } = useSiteIdStore();
+  const { selectedSiteId } = useSetupStore();
 
   useEffect(() => {
     useDashboardAnalyticsStore.getState().fetchAnalytics(selectedSiteId);

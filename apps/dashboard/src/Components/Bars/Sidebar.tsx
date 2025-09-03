@@ -68,7 +68,7 @@ const Sidebar = ({
               key={link.name}
               to={link.path}
               className={`flex items-center gap-2 rounded-lg px-4 py-2 text-lg h-12 ${
-                Expand ? "" : "justify-center"
+                Expand ? "" : "justify-center "
               }${
                 isActive
                   ? "text-blue-600 dark:text-blue-600 font-semibold hover:bg-blue-100 dark:hover:bg-blue-950 "

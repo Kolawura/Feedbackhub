@@ -59,11 +59,13 @@ const SetupWidget = () => {
   const scriptTag = siteId
     ? `<script src="https://feedbackhub.io/widget.js" data-fhub-id="${siteId}" data-position="${widgetPosition}"></script>`
     : "";
-  const { addSite, setupLoading } = useSetupStore();
+  const { addSite, setSites, setupLoading } = useSetupStore();
 
   const generateScript = async () => {
     const newSite = await addSite(webName);
     if (newSite) {
+      console.log(newSite);
+      setSites(newSite);
       setSiteId(newSite.siteId);
       setScriptGenerated(true);
     }

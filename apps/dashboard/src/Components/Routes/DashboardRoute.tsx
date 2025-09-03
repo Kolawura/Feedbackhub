@@ -2,7 +2,7 @@ import { Outlet } from "react-router-dom";
 import Sidebar from "../Bars/Sidebar";
 import Navbar from "../Bars/Navbar";
 
-interface DashboardLayoutProps {
+interface DashboardRouteProps {
   Expand: boolean;
   isCollapsed: boolean;
   setIsCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
@@ -10,13 +10,13 @@ interface DashboardLayoutProps {
   handleMouseLeave: () => void;
 }
 
-export const DashboardLayout = ({
+export const DashboardRoute = ({
   Expand,
   isCollapsed,
   setIsCollapsed,
   handleMouseEnter,
   handleMouseLeave,
-}: DashboardLayoutProps) => {
+}: DashboardRouteProps) => {
   const NavWidth = Expand ? "calc(100% - 16rem)" : "calc(100% - 4rem)";
 
   return (

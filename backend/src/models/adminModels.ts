@@ -1,6 +1,14 @@
 import mongoose, { Document, Model, Schema } from "mongoose";
 import bcrypt from "bcryptjs";
-import { AdminDocument, ISite } from "../Type/Type.js";
+import { AdminDocument } from "../Type/Type.js";
+
+const SiteSchema = new mongoose.Schema(
+  {
+    siteId: { type: String, required: true },
+    name: { type: String, required: true },
+  },
+  { _id: false }
+);
 
 const adminSchema: Schema<AdminDocument> = new mongoose.Schema(
   {
@@ -9,7 +17,7 @@ const adminSchema: Schema<AdminDocument> = new mongoose.Schema(
     username: { type: String, required: true, unique: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    AdminSite: [{ type: String }],
+    AdminSite: [SiteSchema],
   },
   {
     timestamps: true,

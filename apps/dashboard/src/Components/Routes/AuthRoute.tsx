@@ -1,7 +1,7 @@
 import { Outlet, useLocation } from "react-router-dom";
 import HomeNavbar from "../Bars/HomeNavbar";
 
-export const AuthLayout = () => {
+export const AuthRoute = () => {
   const location = useLocation();
 
   const hideNavbarOnPaths = ["/login", "/register"];

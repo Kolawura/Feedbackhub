@@ -7,10 +7,10 @@ import { RegisterForm } from "./Pages/RegisterForm";
 import { LoginForm } from "./Pages/LoginForm";
 import { Analytics } from "./Pages/Analytics";
 import { Home } from "./Pages/Home";
-import { PublicLayout } from "./Components/Layout/PublicLayout";
-import { ProtectedRoute } from "./Components/auth/ProtectedRoute";
-import { DashboardLayout } from "./Components/Layout/DashboardLayout";
-import { AuthLayout } from "./Components/Layout/AuthLayout";
+import { PublicRoute } from "./Components/Routes/PublicRoute";
+import { ProtectedRoute } from "./Components/Routes/ProtectedRoute";
+import { DashboardRoute } from "./Components/Routes/DashboardRoute";
+import { AuthRoute } from "./Components/Routes/AuthRoute";
 import LoadingPage from "./Pages/LoadingPage";
 import { SetupPage } from "./Pages/SetupPage";
 import { Toaster } from "react-hot-toast";
@@ -59,10 +59,10 @@ const App = () => {
     <>
       <Toaster position="top-center" />
       <Routes>
-        <Route element={<PublicLayout />}>
+        <Route element={<PublicRoute />}>
           <Route path="/" element={<Home />} />
         </Route>
-        <Route element={<AuthLayout />}>
+        <Route element={<AuthRoute />}>
           <Route path="/login" element={<LoginForm />} />
           <Route path="/register" element={<RegisterForm />} />
           <Route path="/setup" element={<SetupPage />} />
@@ -70,7 +70,7 @@ const App = () => {
         <Route element={<ProtectedRoute />}>
           <Route
             element={
-              <DashboardLayout
+              <DashboardRoute
                 Expand={Expand}
                 isCollapsed={isCollapsed}
                 setIsCollapsed={setIsCollapsed}

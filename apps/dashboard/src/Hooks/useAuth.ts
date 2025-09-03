@@ -127,7 +127,7 @@ export const useAuth = () => {
       });
       setUser(res.data.user);
       toast.success("Registration successful! Welcome!");
-      navigate("/dashboard/setup");
+      navigate("/setup");
       return { success: true, user: res.data.user };
     } catch (err) {
       const message = extractErrorMessage(

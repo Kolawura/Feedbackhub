@@ -85,7 +85,6 @@ export const registerAdmin = async (
         lastName: newAdmin.lastName,
         username: newAdmin.username,
         email: newAdmin.email,
-        adminSite: newAdmin.AdminSite,
       },
     });
   } catch (error) {
@@ -121,7 +120,9 @@ export const loginAdmin = async (
     const admin = await Admin.findOne({
       $or: [{ username: identifier }, { email: identifier }],
     });
-
+    if (admin) {
+      admin.AdminSite = [];
+    }
     console.log("Admin found?", admin);
     console.log(
       "Password correct?",
@@ -158,7 +159,6 @@ export const loginAdmin = async (
         lastName: admin.lastName,
         username: admin.username,
         email: admin.email,
-        adminSite: admin.AdminSite,
       },
     });
   } catch (error) {
@@ -186,6 +186,9 @@ export const getMe = async (req: Request, res: Response): Promise<void> => {
       res.status(404).json({ success: false, message: "Admin not found" });
       return;
     }
+    if (admin) {
+      admin.AdminSite = [];
+    }
 
     res.status(200).json({
       success: true,
@@ -196,7 +199,6 @@ export const getMe = async (req: Request, res: Response): Promise<void> => {
         lastName: admin.lastName,
         username: admin.username,
         email: admin.email,
-        adminSite: admin.AdminSite,
       },
     });
   } catch (err) {
@@ -254,7 +256,6 @@ export const refreshAccessToken = async (
         lastName: admin.lastName,
         username: admin.username,
         email: admin.email,
-        adminSite: admin.AdminSite,
       },
     });
   } catch (error) {

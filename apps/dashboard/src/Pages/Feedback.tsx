@@ -7,18 +7,21 @@ import { FilterControls } from "../Components/Feedbacks/FilterControls";
 import { FeedbackItem } from "../Components/Feedbacks/FeedbackItem";
 import LoadingPage from "./LoadingPage";
 import toast from "react-hot-toast";
-import { useSiteIdStore } from "../Store/useSiteIdStore";
 import ErrorPage from "./ErrorPage";
 import NoFeedbacks from "../Components/Feedbacks/NoFeedbacks";
+import { useSetupStore } from "../Store/useSetupStore";
 
 const Feedback: React.FC = () => {
   const { feedbacks, loading, error } = useFeedbackStore();
 
-  const { siteIds, selectedSiteId, selectSiteId } = useSiteIdStore();
+  const { sites, selectedSiteId, selectSiteId } = useSetupStore();
+  console.log(sites);
 
   useEffect(() => {
     useFeedbackStore.getState().fetchFeedbacks();
-  }, []);
+    if (selectedSiteId)
+      useFeedbackStore.getState().fetchSiteFeedbacks(selectedSiteId);
+  }, [selectedSiteId]);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -115,7 +118,7 @@ const Feedback: React.FC = () => {
         categoryFilter={categoryFilter}
         setCategoryFilter={setCategoryFilter}
         onClearFilters={handleClearFilters}
-        siteIds={siteIds}
+        sites={sites}
         selectedSiteId={selectedSiteId}
         selectSiteId={selectSiteId}
       />

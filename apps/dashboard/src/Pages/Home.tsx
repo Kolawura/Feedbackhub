@@ -17,7 +17,7 @@ export const Home = () => {
   return (
     <div className="bg-gray-50 dark:bg-gray-900 font-outfit min-h-screen text-gray-900 dark:text-gray-100 transition-all duration-200">
       <section className="text-center space-y-8 py-20 px-4 md:px-8">
-        <h1 className="flex items-start justify-center gap-4 text-4xl md:text-6xl font-bold leading-tight">
+        <h1 className="flex items-center justify-center gap-4 text-4xl md:text-6xl font-bold leading-tight">
           <MessageCircleMore size={60} /> Collect Feedback. Improve Experiences.
         </h1>
         <p className="text-base md:text-xl max-w-3xl mx-auto text-gray-600 dark:text-gray-300">
