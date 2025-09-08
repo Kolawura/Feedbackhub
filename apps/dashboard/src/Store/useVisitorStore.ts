@@ -11,34 +11,16 @@ interface VisitorState {
   analytics: Record<string, Record<string, ChartInfo>>;
   loading: boolean;
   error: string | null;
-  fetchAnalytics: (range: string, siteId: string) => Promise<void>;
+  setAnalytics: (analytics: Record<string, Record<string, ChartInfo>>) => void;
+  setLoading: (loading: boolean) => void;
+  setError: (error: string | null) => void;
 }
 
 export const useVisitorStore = create<VisitorState>((set) => ({
   analytics: {},
   loading: false,
   error: null,
-
-  fetchAnalytics: async (range: string, siteId: string) => {
-    set({ loading: true, error: null });
-    try {
-      const res = await fetch(`/api/analytics/${siteId}?range=${range}`);
-
-      set((state) => ({
-        analytics: {
-          ...state.analytics,
-          [siteId]: {
-            ...(state.analytics[siteId] || {}),
-            [range]: res.data,
-          },
-        },
-        loading: false,
-      }));
-    } catch (err: any) {
-      set({
-        error: err.message || "Failed to fetch analytics",
-        loading: false,
-      });
-    }
-  },
+  setAnalytics: (analytics) => set({ analytics }),
+  setLoading: (loading) => set({ loading }),
+  setError: (error) => set({ error }),
 }));

@@ -10,6 +10,7 @@ import toast from "react-hot-toast";
 import ErrorPage from "./ErrorPage";
 import NoFeedbacks from "../Components/Feedbacks/NoFeedbacks";
 import { useSetupStore } from "../Store/useSetupStore";
+import { fetchFeedbacks, fetchSiteFeedbacks } from "../Hooks/useFetch";
 
 const Feedback: React.FC = () => {
   const { feedbacks, loading, error } = useFeedbackStore();
@@ -18,9 +19,8 @@ const Feedback: React.FC = () => {
   console.log(sites);
 
   useEffect(() => {
-    useFeedbackStore.getState().fetchFeedbacks();
-    if (selectedSiteId)
-      useFeedbackStore.getState().fetchSiteFeedbacks(selectedSiteId);
+    fetchFeedbacks();
+    if (selectedSiteId) fetchSiteFeedbacks(selectedSiteId);
   }, [selectedSiteId]);
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -93,11 +93,12 @@ const Feedback: React.FC = () => {
     setStatusFilter("all");
     setPriorityFilter("all");
     setCategoryFilter("all");
+    selectSiteId(null);
   };
   if (error) toast.error(error);
   if (loading) return <LoadingPage />;
   if (error) return <ErrorPage errorMessage={error} />;
-  if (feedbacks.length === 0) return <NoFeedbacks />;
+  // if (feedbacks.length === 0) return <NoFeedbacks />;
 
   return (
     <div className="space-y-6 text-gray-900 dark:text-gray-100 transition-all duration-200">

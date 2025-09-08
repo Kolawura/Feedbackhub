@@ -12,7 +12,9 @@ interface DashboardAnalyticsStore {
   analytics: DashboardAnalyticsData | null;
   loading: boolean;
   error: string | null;
-  fetchAnalytics: (siteId: string | null) => Promise<void>;
+  setAnalytics: (data: DashboardAnalyticsData | null) => void;
+  setLoading: (loading: boolean) => void;
+  setError: (error: string | null) => void;
 }
 
 export const useDashboardAnalyticsStore = create<DashboardAnalyticsStore>(
@@ -20,30 +22,8 @@ export const useDashboardAnalyticsStore = create<DashboardAnalyticsStore>(
     analytics: null,
     loading: false,
     error: null,
-
-    fetchAnalytics: async (siteId: string | null) => {
-      set({ loading: true, error: null }); // start loading
-
-      try {
-        const url = siteId
-          ? `/api/feedback/dashboard/${siteId}`
-          : `/api/feedback/dashboard`;
-
-        const res = await fetch(url);
-
-        set({
-          analytics: res.data.data,
-          loading: false,
-          error: null,
-        });
-        if (!res.data.success) throw new Error(res.data.message);
-      } catch (err: any) {
-        set({
-          loading: false,
-          error: err?.message || "Failed to fetch analytics",
-        });
-        console.error("Error fetching analytics:", err);
-      }
-    },
+    setAnalytics: (data) => set({ analytics: data }),
+    setLoading: (loading) => set({ loading }),
+    setError: (error) => set({ error }),
   })
 );

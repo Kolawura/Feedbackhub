@@ -13,12 +13,10 @@ import {
 } from "chart.js";
 import { Chart } from "react-chartjs-2";
 import { useDashboardAnalyticsStore } from "../../Store/useDashboardAnalyticsStore";
-import LoadingPage from "../../Pages/LoadingPage";
-import ErrorPage from "../../Pages/ErrorPage";
 import { EmptyState } from "../ui/EmptyState";
-import { ChartSkeleton } from "./ChartSkeleton";
 import Loader from "../ui/Loader";
 import { useSetupStore } from "../../Store/useSetupStore";
+import { fetchAnalytics } from "../../Hooks/useFetch";
 
 ChartJS.register(
   ArcElement,
@@ -32,11 +30,11 @@ ChartJS.register(
 );
 
 export const DashboardAnalytics = () => {
-  const { analytics, loading, error } = useDashboardAnalyticsStore();
+  const { analytics, loading } = useDashboardAnalyticsStore();
   const { selectedSiteId } = useSetupStore();
 
   useEffect(() => {
-    useDashboardAnalyticsStore.getState().fetchAnalytics(selectedSiteId);
+    fetchAnalytics(selectedSiteId);
   }, [selectedSiteId]);
 
   const hasTrendData =

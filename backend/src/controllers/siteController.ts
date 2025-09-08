@@ -38,6 +38,26 @@ export const addNewSite = async (
   }
 };
 
+export const getSiteIds = async (req: Request, res: Response) => {
+  try {
+    const adminId = req.admin?._id;
+
+    const admin = await Admin.findById(adminId);
+    if (!admin) {
+      res.status(404).json({ success: false, message: "Admin not found" });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      sites: admin.AdminSite,
+    });
+  } catch (error) {
+    console.error("Error fetching site IDs:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
 export const validateSiteId = async (req: Request, res: Response) => {
   try {
     const { siteId } = req.params;

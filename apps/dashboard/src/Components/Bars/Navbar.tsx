@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Logs, Moon, Search, Sun } from "lucide-react";
 import { NavbarProps } from "../../Type";
 import { useThemeStore } from "../../Store/useThemeStore";
+import { useAuthStore } from "../../Store/useAuthStore";
 
 export default function Navbar({
   isCollapsed,
@@ -10,6 +11,7 @@ export default function Navbar({
   NavWidth,
 }: NavbarProps) {
   const { theme, toggleTheme } = useThemeStore();
+  const { user } = useAuthStore();
 
   return (
     <nav
@@ -58,7 +60,7 @@ export default function Navbar({
           className="w-10 h-10 rounded-full"
         />
         <span className="text-gray-800 dark:text-white font-medium">
-          John Doe
+          {user?.firstName} {user?.lastName}
         </span>
       </div>
     </nav>

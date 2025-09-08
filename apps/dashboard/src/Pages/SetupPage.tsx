@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { useSetupStore } from "../Store/useSetupStore";
+import { addSite } from "../Hooks/useFetch";
 
 export const SetupPage = () => {
   return (
@@ -59,14 +60,13 @@ const SetupWidget = () => {
   const scriptTag = siteId
     ? `<script src="https://feedbackhub.io/widget.js" data-fhub-id="${siteId}" data-position="${widgetPosition}"></script>`
     : "";
-  const { addSite, setSites, setupLoading } = useSetupStore();
+  const { setupLoading } = useSetupStore();
 
-  const generateScript = async () => {
-    const newSite = await addSite(webName);
-    if (newSite) {
-      console.log(newSite);
-      setSites(newSite);
-      setSiteId(newSite.siteId);
+  const generateSite = async () => {
+    const site = await addSite(webName);
+    console.log(site);
+    if (site) {
+      setSiteId(site.newSite.siteId);
       setScriptGenerated(true);
     }
   };
@@ -149,7 +149,7 @@ const SetupWidget = () => {
       <div className="flex items-center p-6 pt-0">
         {!scriptGenerated ? (
           <button
-            onClick={generateScript}
+            onClick={generateSite}
             disabled={setupLoading}
             className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none bg-primary text-primary-foreground hover:bg-primary/90 h-10 py-2 px-4 w-full sm:w-auto"
           >

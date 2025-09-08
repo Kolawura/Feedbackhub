@@ -4,9 +4,10 @@ import { useEffect } from "react";
 import { Feedback } from "../../Type";
 import Loader from "../ui/Loader";
 import { EmptyState } from "../ui/EmptyState";
+import { fetchFeedbacks } from "../../Hooks/useFetch";
 
 const RecentFeedback = () => {
-  const { feedbacks, loading, error, fetchFeedbacks } = useFeedbackStore();
+  const { feedbacks, loading } = useFeedbackStore();
   useEffect(() => {
     fetchFeedbacks();
   }, [fetchFeedbacks]);

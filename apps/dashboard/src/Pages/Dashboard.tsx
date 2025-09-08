@@ -1,14 +1,5 @@
 import type React from "react";
-import {
-  MessageSquare,
-  Clock,
-  CheckCircle,
-  AlertCircle,
-  ArrowUpRight,
-  ThumbsUp,
-  ThumbsDown,
-  Globe,
-} from "lucide-react";
+import { Clock, CheckCircle, AlertCircle, ArrowUpRight } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -17,7 +8,6 @@ import {
   CardTitle,
 } from "../Components/ui/Card";
 import { Button } from "../Components/ui/Button";
-import StatCard from "../Components/Dashboard/StartCard";
 import { motion } from "framer-motion";
 import { RecentFeedbackItem } from "../Components/Feedbacks/RecentFeedbackItem";
 import { useNavigate } from "react-router-dom";
@@ -25,10 +15,12 @@ import { useFeedbackStore } from "../Store/useFeedbackStore";
 import Loader from "../Components/ui/Loader";
 import { EmptyState } from "../Components/ui/EmptyState";
 import { StartCardDiv } from "../Components/Dashboard/StartCardDiv";
+import { useAuthStore } from "../Store/useAuthStore";
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { feedbacks, loading, error } = useFeedbackStore();
+  const { user } = useAuthStore();
   const recentFeedback = feedbacks.slice(0, 5);
 
   const getPriorityColor = (priority: string) => {
@@ -65,6 +57,9 @@ const Dashboard: React.FC = () => {
     <div className="space-y-6 p-6 text-gray-900 dark:text-gray-100 transition-all duration-200">
       <div className="text-center">
         <h1 className="text-3xl font-bold">Dashboard</h1>
+        <h2 className="text-2xl text-center font-semibold text-gray-800 dark:text-white mb-4">
+          Welcome back, {user?.username} 👋
+        </h2>
         <p className="text-gray-600">Overview of your feedback hub activity</p>
       </div>
       <StartCardDiv />

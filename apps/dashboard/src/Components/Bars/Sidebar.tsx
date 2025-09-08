@@ -53,9 +53,9 @@ const Sidebar = ({
       onMouseLeave={handleMouseLeave}
       className={`${
         Expand ? "w-64" : "w-16 "
-      } mt-16 lg:mt-0 fixed h-screen transition-all duration-200 dark:bg-gray-900 bg-white text-gray-700 border-r border-gray-200 dark:border-gray-800 dark:text-gray-200 flex flex-col py-8`}
+      } mt-16 lg:mt-0 fixed h-screen transition-all duration-200 dark:bg-gray-900 bg-white text-gray-700 border-r border-gray-200 dark:border-gray-800 dark:text-gray-200 flex flex-col`}
     >
-      <div className="flex items-center justify-center mb-10 gap-4 border-b border-gray-200 dark:border-gray-800">
+      <div className="flex items-center justify-center h-16 mb-10 gap-4 border-b border-gray-300 dark:border-gray-700">
         <MessageSquareCode size={25} />
         {Expand && <h2 className="text-2xl font-semibold">FeedbackHub</h2>}
       </div>
@@ -81,6 +81,7 @@ const Sidebar = ({
           );
         })}
       </nav>
+      <div className="flex justify-center items-center">about user</div>
     </aside>
   );
 };

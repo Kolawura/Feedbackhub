@@ -4,6 +4,7 @@ import { fetch } from "../lib/axios";
 import { useLocation, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { AxiosError } from "axios";
+import { loadSites } from "./useFetch";
 
 export const useAuth = () => {
   const navigate = useNavigate();
@@ -23,6 +24,7 @@ export const useAuth = () => {
         signal: controller.signal,
       });
       console.log("User fetched successfully:", res.data.data);
+
       setUser(res.data.data);
     } catch (err: any) {
       console.error("Session expired, refreshing...", err);
@@ -70,6 +72,7 @@ export const useAuth = () => {
     const controller = new AbortController();
     isMounted = true;
     fetchUser();
+    loadSites();
     return () => {
       isMounted = false;
       controller.abort();
