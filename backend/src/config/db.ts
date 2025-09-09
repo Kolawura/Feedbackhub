@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { ConnectOptions } from "mongoose";
 
 const connectDB = async (): Promise<void> => {
   try {
@@ -7,7 +7,7 @@ const connectDB = async (): Promise<void> => {
     if (!MONGO_URI) {
       throw new Error("MONGO_URI not found in environment variables");
     }
-    const conn = await mongoose.connect(MONGO_URI, {});
+    const conn = await mongoose.connect(MONGO_URI, {} as ConnectOptions);
     console.log(`MongoDB Connected: ${conn.connection.host}`);
   } catch (error: unknown) {
     if (error instanceof Error) {
