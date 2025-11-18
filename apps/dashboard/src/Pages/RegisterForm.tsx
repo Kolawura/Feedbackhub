@@ -49,7 +49,7 @@ export const RegisterForm = () => {
 
   return (
     <div className="flex items-center justify-center h-screen">
-      <div className="md:min-w-md m-auto rounded-2xl p-8 shadow-input bg-white dark:bg-white/3 shadow-xl">
+      <div className="m-auto rounded-2xl p-8 shadow-input bg-white dark:bg-white/3 shadow-xl">
         <h2 className="font-bold text-xl text-neutral-800 dark:text-neutral-200 text-center">
           Create Account
         </h2>
