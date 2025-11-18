@@ -50,10 +50,10 @@ const HeroSection = () => {
   }, [index, isHovered, isDarkMode]);
 
   return (
-    <div className="flex items-center justify-center w-3/4 m-auto gap-4">
+    <div className="flex items-center justify-center lg:w-3/4 w-7/8 m-auto gap-4">
       <button
         onClick={goToPrev}
-        className="text-gray-800 dark:text-white hover:text-white p-2 rounded-full hover:bg-black/60"
+        className="hidden lg:flex text-gray-800 dark:text-white hover:text-white p-2 rounded-full hover:bg-black/60"
       >
         <ChevronLeft size={25} />
       </button>
@@ -71,7 +71,7 @@ const HeroSection = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 1 }}
-            className="absolute inset-0 w-full h-full object-cover"
+            className="absolute inset-0 w-full h-full object-fill"
           />
         </AnimatePresence>
 
@@ -84,10 +84,7 @@ const HeroSection = () => {
               Understand your users. Improve your product.
             </p>
             <div className="space-x-4">
-              <Button
-                variant="link"
-                className="text-white px-6 py-2 rounded-md"
-              >
+              <Button className="text-white px-6 py-2 rounded-md">
                 Join Now
               </Button>
               <Button className="text-black px-6 py-2 rounded-md">Demo</Button>
@@ -97,7 +94,7 @@ const HeroSection = () => {
       </div>
       <button
         onClick={goToNext}
-        className="text-gray-800 dark:text-white hover:text-white p-2 rounded-full hover:bg-black/60"
+        className="hidden lg:flex text-gray-800 dark:text-white hover:text-white p-2 rounded-full hover:bg-black/60"
       >
         <ChevronRight size={25} />
       </button>

@@ -27,7 +27,7 @@ export const Home = () => {
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-6">
           <Button
             onClick={() => navigate("/login")}
-            className="rounded-3xl p-6 gap-2"
+            className="rounded-3xl p-6 px-8 gap-2"
           >
             <LogIn size={15} />
             Login
@@ -37,7 +37,7 @@ export const Home = () => {
             onClick={() => navigate("/register")}
             className="rounded-3xl gap-2 p-6"
           >
-            <UserPlus size={16} /> Register
+            <UserPlus size={15} /> Register
           </Button>
         </div>
       </section>

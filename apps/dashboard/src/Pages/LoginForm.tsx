@@ -95,11 +95,11 @@ export const LoginForm = () => {
 
   return (
     <div className="flex justify-center items-center h-screen">
-      <div className="h-fit m-auto min-w-md w-full rounded-2xl p-4 md:p-8 shadow-input bg-white dark:bg-white/3 shadow-xl">
-        <h2 className="font-bold text-xl text  text-neutral-800 dark:text-neutral-200">
+      <div className="h-fit m-auto md:min-w-md w-full rounded-2xl p-4 md:p-8 shadow-input bg-white dark:bg-white/3 shadow-xl">
+        <h2 className="font-bold text-xl text-center  text-neutral-800 dark:text-neutral-200">
           Welcome back
         </h2>
-        <p className="text-neutral-600 text-sm text  max-w-sm mt-2 dark:text-neutral-300">
+        <p className="text-neutral-600 text-sm text-center max-w-sm mt-2 dark:text-neutral-300">
           Login to access your account
         </p>
 
