@@ -95,7 +95,7 @@ export const LoginForm = () => {
 
   return (
     <div className="flex justify-center items-center h-screen">
-      <div className="h-fit m-auto rounded-2xl p-4 md:p-8 shadow-input bg-white dark:bg-white/3 shadow-xl">
+      <div className="h-fit md:m-auto rounded-2xl p-4 md:p-8 shadow-input bg-white dark:bg-white/3 shadow-xl">
         <h2 className="font-bold text-xl text-center  text-neutral-800 dark:text-neutral-200">
           Welcome back
         </h2>
