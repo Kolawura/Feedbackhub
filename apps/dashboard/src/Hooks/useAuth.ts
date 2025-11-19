@@ -101,8 +101,8 @@ export const useAuth = () => {
       });
       console.log(res.data);
       setUser(res.data.user);
-      toast.success("Welcome back!");
       navigate("/dashboard");
+      toast.success("Welcome back!");
       return { success: true, user: res.data.user };
     } catch (err) {
       const message = extractErrorMessage(
@@ -130,8 +130,8 @@ export const useAuth = () => {
         withCredentials: true,
       });
       setUser(res.data.user);
-      toast.success("Registration successful! Welcome!");
       navigate("/setup");
+      toast.success("Registration successful! Welcome!");
       return { success: true, user: res.data.user };
     } catch (err) {
       const message = extractErrorMessage(
