@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useAuthStore } from "../Store/useAuthStore";
 import { fetch } from "../lib/axios";
-import { useLocation, useNavigate } from "react-router-dom";
+import { redirect, useLocation, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { AxiosError } from "axios";
 import { loadSites } from "./useFetch";
@@ -73,6 +73,7 @@ export const useAuth = () => {
     isMounted = true;
     fetchUser();
     loadSites();
+    redirect("/dashboard");
     return () => {
       isMounted = false;
       controller.abort();
