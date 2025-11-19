@@ -73,7 +73,7 @@ export const useAuth = () => {
     isMounted = true;
     fetchUser();
     loadSites();
-    redirect("/dashboard");
+    navigate("/dashboard");
     return () => {
       isMounted = false;
       controller.abort();
