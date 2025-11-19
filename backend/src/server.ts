@@ -21,7 +21,7 @@ connectDB();
 app.use(helmet());
 app.use(
   cors({
-    origin: "https://feedbackhub-kappa.vercel.app/",
+    origin: "https://feedbackhub-kappa.vercel.app",
     credentials: true,
   })
 );
