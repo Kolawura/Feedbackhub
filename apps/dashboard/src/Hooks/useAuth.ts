@@ -16,7 +16,6 @@ export const useAuth = () => {
 
   const fetchUser = async (controller: AbortController): Promise<boolean> => {
     try {
-      // setLoading(true);
       setError(null);
       console.log("Fetching user...");
       const res = await api.get("/api/auth/me", {
@@ -27,9 +26,9 @@ export const useAuth = () => {
       setUser(res.data.data);
       return true;
     } catch (err: any) {
+      if (controller.signal.aborted) return false;
       console.error("Session expired, refreshing...", err);
       setError("Session expired. Attempting refresh...");
-      if (!isMounted.current) return false;
       if (!refreshAttempted.current) {
         refreshAttempted.current = true;
         try {
@@ -60,7 +59,6 @@ export const useAuth = () => {
       }
     } finally {
       if (isMounted.current) {
-        // setLoading(false);
         console.log("Loading complete");
       }
     }
@@ -79,12 +77,11 @@ export const useAuth = () => {
     const init = async () => {
       const success = await fetchUser(controller);
       if (!isMounted.current || !success) return;
-
       await loadSites();
       setLoading(false);
     };
-
     init();
+
     return () => {
       isMounted.current = false;
       controller.abort();
