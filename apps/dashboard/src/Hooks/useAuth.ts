@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useAuthStore } from "../Store/useAuthStore";
-import { fetch } from "../lib/axios";
+import { api } from "../lib/axios";
 import { redirect, useLocation, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { AxiosError } from "axios";
@@ -11,52 +11,55 @@ export const useAuth = () => {
   const { user, setUser, logoutUser, loading, setLoading, setError, error } =
     useAuthStore();
   const { pathname } = useLocation();
-  let isMounted = true;
-  const controller = new AbortController();
+  const isMounted = useRef(true);
   const refreshAttempted = useRef(false);
 
-  const fetchUser = async () => {
+  const fetchUser = async (controller: AbortController): Promise<boolean> => {
     try {
       setLoading(true);
       setError(null);
       console.log("Fetching user...");
-      const res = await fetch.get("/api/auth/me", {
+      const res = await api.get("/api/auth/me", {
         signal: controller.signal,
       });
       console.log("User fetched successfully:", res.data.data);
 
       setUser(res.data.data);
+      return true;
     } catch (err: any) {
       console.error("Session expired, refreshing...", err);
       setError("Session expired. Attempting refresh...");
-      if (!isMounted) return;
+      if (!isMounted.current) return false;
       if (!refreshAttempted.current) {
         refreshAttempted.current = true;
         try {
-          await fetch.post(
+          await api.post(
             "/api/auth/refresh-token",
             {},
             { signal: controller.signal }
           );
 
-          const res = await fetch.get("/api/auth/me", {
+          const res = await api.get("/api/auth/me", {
             signal: controller.signal,
           });
 
-          if (!isMounted) return;
+          if (!isMounted.current) return false;
           setUser(res.data.data);
           setError(null);
+          return true;
         } catch (refreshError: any) {
           console.error("Refresh failed:", refreshError);
           setError(`Authentication failed.${refreshError.message}`);
           logoutUser();
+          return false;
         }
       } else {
         console.error("Already attempted refresh. Logging out.");
         logoutUser();
+        return false;
       }
     } finally {
-      if (isMounted) {
+      if (isMounted.current) {
         setLoading(false);
         console.log("Loading complete");
       }
@@ -70,12 +73,18 @@ export const useAuth = () => {
       return;
     }
     const controller = new AbortController();
-    isMounted = true;
-    fetchUser();
-    loadSites();
-    navigate("/dashboard");
+    isMounted.current = true;
+
+    const init = async () => {
+      const success = await fetchUser(controller);
+      if (!isMounted.current || !success) return;
+
+      await loadSites();
+    };
+
+    init();
     return () => {
-      isMounted = false;
+      isMounted.current = false;
       controller.abort();
       console.log("effect cleanup");
     };
@@ -96,7 +105,7 @@ export const useAuth = () => {
     try {
       setLoading(true);
       setError(null);
-      const res = await fetch.post("/api/auth/login", data, {
+      const res = await api.post("/api/auth/login", data, {
         withCredentials: true,
       });
       console.log(res.data);
@@ -126,7 +135,7 @@ export const useAuth = () => {
     try {
       setLoading(true);
       setError(null);
-      const res = await fetch.post("/api/auth/register", data, {
+      const res = await api.post("/api/auth/register", data, {
         withCredentials: true,
       });
       setUser(res.data.user);
@@ -147,7 +156,7 @@ export const useAuth = () => {
 
   const logout = async () => {
     try {
-      const res = await fetch.post("/api/auth/logout", null, {
+      const res = await api.post("/api/auth/logout", null, {
         withCredentials: true,
       });
       logoutUser();

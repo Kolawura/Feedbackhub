@@ -1,7 +1,5 @@
 import { create } from "zustand";
 import { Feedback } from "../Type";
-import { fetch } from "../lib/axios";
-import toast from "react-hot-toast";
 
 interface FeedbackStore {
   feedbacks: Feedback[];

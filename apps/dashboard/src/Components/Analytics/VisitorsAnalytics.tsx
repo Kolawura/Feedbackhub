@@ -14,6 +14,7 @@ import { useVisitorStore } from "../../Store/useVisitorStore";
 import Loader from "../ui/Loader";
 import { EmptyState } from "../ui/EmptyState";
 import { useSetupStore } from "../../Store/useSetupStore";
+import { fetchVisitorsAnalytics } from "../../Hooks/useFetch";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
@@ -33,10 +34,8 @@ const VisitorAnalytics = () => {
     timeRanges.find((range) => range.id === selected)?.value || "30days";
 
   useEffect(() => {
-    if (selectedSiteId && !analytics[selectedSiteId]?.[currentRange]) {
-      useVisitorStore.getState().fetchAnalytics(currentRange, selectedSiteId);
-    }
-  }, [currentRange, analytics, selectedSiteId]);
+    selectedSiteId && fetchVisitorsAnalytics(currentRange, selectedSiteId);
+  }, [currentRange, selectedSiteId]);
 
   const chartData = useMemo(
     () =>

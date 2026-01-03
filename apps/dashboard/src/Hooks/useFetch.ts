@@ -1,16 +1,14 @@
-import { fetch } from "../lib/axios";
+import { api } from "../lib/axios";
 import { toast } from "react-hot-toast";
 import { useSetupStore } from "../Store/useSetupStore";
 import { useDashboardAnalyticsStore } from "../Store/useDashboardAnalyticsStore";
-import { use } from "react";
 import { useVisitorStore } from "../Store/useVisitorStore";
-import { set } from "react-hook-form";
 import { useFeedbackStore } from "../Store/useFeedbackStore";
 import { Feedback } from "../Type";
 
 export const loadSites = async () => {
   try {
-    const response = await fetch.get("/api/site/all", {
+    const response = await api.get("/api/site/all", {
       withCredentials: true,
     });
     useSetupStore.getState().setSites(response.data.sites);
@@ -22,7 +20,7 @@ export const loadSites = async () => {
 
 export const addSite = async (name?: string) => {
   try {
-    const response = await fetch.post(
+    const response = await api.post(
       "/api/site/add",
       { name },
       { withCredentials: true }
@@ -49,7 +47,7 @@ export const fetchAnalytics = async (siteId: string | null) => {
       ? `/api/feedback/dashboard/${siteId}`
       : `/api/feedback/dashboard`;
 
-    const res = await fetch(url);
+    const res = await api(url);
 
     useDashboardAnalyticsStore.getState().setAnalytics(res.data.data);
     useDashboardAnalyticsStore.getState().setLoading(false);
@@ -68,7 +66,7 @@ export const fetchVisitorsAnalytics = async (range: string, siteId: string) => {
   useVisitorStore.getState().setLoading(true);
   useVisitorStore.getState().setError(null);
   try {
-    const res = await fetch(`/api/analytics/${siteId}?range=${range}`);
+    const res = await api(`/api/analytics/${siteId}?range=${range}`);
 
     useVisitorStore.getState().setAnalytics({
       [siteId]: {
@@ -89,7 +87,7 @@ export const fetchFeedbacks = async () => {
   useFeedbackStore.getState().setLoading(true);
   useFeedbackStore.getState().setError(null);
   try {
-    const res = await fetch("/api/feedback/allFeedbacks");
+    const res = await api("/api/feedback/allFeedbacks");
     if (!res.data.success) throw new Error(res.data.message);
     const data: Feedback[] = res.data.data;
     useFeedbackStore.getState().setFeedbacks(data);
@@ -106,7 +104,7 @@ export const fetchSiteFeedbacks = async (siteId: string) => {
   useFeedbackStore.getState().setLoading(true);
   useFeedbackStore.getState().setError(null);
   try {
-    const res = await fetch(`/api/feedback/${siteId}`);
+    const res = await api(`/api/feedback/${siteId}`);
     if (!res.data.success) throw new Error(res.data.message);
     const data: Feedback[] = res.data.data;
     useFeedbackStore.getState().setFeedbacks(data);
@@ -123,7 +121,7 @@ export const fetchVisitorsFeedbacks = async (visitorId: string) => {
   useFeedbackStore.getState().setLoading(true);
   useFeedbackStore.getState().setError(null);
   try {
-    const res = await fetch(`/api/feedback/by-visitor/${visitorId}`);
+    const res = await api(`/api/feedback/by-visitor/${visitorId}`);
     if (!res.data.success) throw new Error(res.data.message);
     const data: Feedback[] = res.data.data;
     useFeedbackStore.getState().setFeedbacks(data);

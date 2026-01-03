@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import { fetch } from "../lib/axios";
 
 interface DashboardAnalyticsData {
   trend: number[];

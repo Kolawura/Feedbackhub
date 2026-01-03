@@ -16,7 +16,7 @@ const LoadingPage: React.FC = () => {
           transition={{
             repeat: Infinity,
             duration: 1.5,
-            ease: "linear",
+            ease: "easeInOut",
           }}
         >
           <Loader2 className="w-16 h-16 text-blue-500 animate-spin drop-shadow-lg" />
