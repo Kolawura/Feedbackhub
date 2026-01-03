@@ -30,7 +30,6 @@ export const useAuth = () => {
       console.error("Session expired, refreshing...", err);
       setError("Session expired. Attempting refresh...");
       if (!isMounted.current) return false;
-      if (controller.signal.aborted) return false;
       if (!refreshAttempted.current) {
         refreshAttempted.current = true;
         try {
