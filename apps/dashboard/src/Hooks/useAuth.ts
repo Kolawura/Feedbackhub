@@ -30,6 +30,7 @@ export const useAuth = () => {
       console.error("Session expired, refreshing...", err);
       setError("Session expired. Attempting refresh...");
       if (!isMounted.current) return false;
+      if (controller.signal.aborted) return false;
       if (!refreshAttempted.current) {
         refreshAttempted.current = true;
         try {
@@ -67,6 +68,7 @@ export const useAuth = () => {
   };
 
   useEffect(() => {
+    if (user) return;
     if (pathname === "/login" || pathname === "/register") {
       console.log("Skipping user fetch on auth pages");
       setLoading(false);
@@ -80,6 +82,7 @@ export const useAuth = () => {
       if (!isMounted.current || !success) return;
 
       await loadSites();
+      setLoading(false);
     };
 
     init();
