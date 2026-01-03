@@ -16,7 +16,7 @@ export const useAuth = () => {
 
   const fetchUser = async (controller: AbortController): Promise<boolean> => {
     try {
-      setLoading(true);
+      // setLoading(true);
       setError(null);
       console.log("Fetching user...");
       const res = await api.get("/api/auth/me", {
@@ -61,7 +61,7 @@ export const useAuth = () => {
       }
     } finally {
       if (isMounted.current) {
-        setLoading(false);
+        // setLoading(false);
         console.log("Loading complete");
       }
     }
