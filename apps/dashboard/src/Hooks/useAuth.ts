@@ -91,7 +91,7 @@ export const useAuth = () => {
       controller.abort();
       console.log("effect cleanup");
     };
-  }, []);
+  }, [user, pathname]);
 
   const extractErrorMessage = (
     err: unknown,
