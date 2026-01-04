@@ -7,7 +7,6 @@ import {
   logoutRequest,
   registerRequest,
 } from "../lib/auth";
-import { useSites } from "./useSite";
 
 const location = useLocation();
 
@@ -22,7 +21,7 @@ export const useAuth = () => {
   } = useQuery({
     queryKey: ["me"],
     queryFn: getMe,
-    retry: 1,
+    retry: false,
     staleTime: 5 * 60 * 1000,
   });
 
