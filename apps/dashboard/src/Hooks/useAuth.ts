@@ -7,7 +7,9 @@ import {
   logoutRequest,
   registerRequest,
 } from "../lib/auth";
-import { loadSites } from "./useFetch";
+import { useSites } from "./useSite";
+
+const location = useLocation();
 
 export const useAuth = () => {
   const navigate = useNavigate();
@@ -28,9 +30,7 @@ export const useAuth = () => {
     mutationFn: loginRequest,
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["me"] });
-      await loadSites();
       toast.success("Welcome back!");
-      const location = useLocation();
       const from = location.state?.from?.pathname || "/dashboard";
 
       navigate(from, { replace: true });

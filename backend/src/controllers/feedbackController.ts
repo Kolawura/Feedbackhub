@@ -169,8 +169,8 @@ export const getDashboardAnalytics = async (req: Request, res: Response) => {
     const trend: number[] = [];
 
     for (let i = 4; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const monthLabel = d.toLocaleString("default", { month: "short" }); // e.g. "Aug"
+      const date = new Date(now.getFullYear(), now.getMonth() - i);
+      const monthLabel = date.toLocaleString("default", { month: "short" }); // e.g. "Aug"
       labels.push(monthLabel);
       trend.push(0);
     }

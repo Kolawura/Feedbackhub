@@ -8,7 +8,6 @@ import { toast } from "react-hot-toast";
 import { useEffect, useRef, useState } from "react";
 
 export const LoginForm = () => {
-  // const [serverError, setServerError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
   const {
@@ -67,8 +66,6 @@ export const LoginForm = () => {
           type: "manual",
           message: response.error || "Invalid login credentials",
         });
-      } else {
-        toast.success("Logged in successfully");
       }
     } catch (err: any) {
       console.error("Login error:", err);

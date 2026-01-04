@@ -1,20 +1,20 @@
 import { MessageSquare, ThumbsUp, ThumbsDown, Globe } from "lucide-react";
 import StatCard from "./StartCard";
-import { useFeedbackStore } from "../../Store/useFeedbackStore";
 import { useSetupStore } from "../../Store/useSetupStore";
-import { useDashboardAnalyticsStore } from "../../Store/useDashboardAnalyticsStore";
+import { useFeedbacks } from "../../Hooks/useFeedback";
+import { useSites } from "../../Hooks/useSite";
+import { useDashboardAnalytics } from "../../Hooks/useAnalytics";
 
 export const StartCardDiv = () => {
-  const { feedbacks } = useFeedbackStore();
-  console.log("Store identity", useSetupStore);
-  const sites = useSetupStore((state) => state.sites);
-  const { analytics } = useDashboardAnalyticsStore();
-  console.log("Current sites:", useSetupStore.getState().sites);
+  const { data: feedbacks } = useFeedbacks();
+  const { sitesQuery: sites } = useSites();
+  const { selectedSiteId } = useSetupStore();
+  const { data: analytics } = useDashboardAnalytics(selectedSiteId);
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       <StatCard
         title="Total Feedback"
-        value={feedbacks.length}
+        value={feedbacks?.length || 0}
         icon={<MessageSquare size={20} />}
         color="bg-blue-500/15 text-blue-500"
       />
@@ -32,7 +32,7 @@ export const StartCardDiv = () => {
       />
       <StatCard
         title="Sites Connected"
-        value={sites.length}
+        value={sites?.data?.length || 0}
         icon={<Globe size={20} />}
         color="bg-purple-500/15 text-purple-500"
       />

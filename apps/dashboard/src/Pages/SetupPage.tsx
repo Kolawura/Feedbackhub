@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { useSetupStore } from "../Store/useSetupStore";
-import { addSite } from "../Hooks/useFetch";
+import { useSites } from "../Hooks/useSite";
 
 export const SetupPage = () => {
   return (
@@ -56,19 +56,26 @@ const SetupWidget = () => {
 
   const widgetPosition = useSetupStore((state) => state.widgetPosition);
   const setWidgetPosition = useSetupStore((state) => state.setWidgetPosition);
+  const { sitesQuery, addSiteMutation } = useSites();
 
   const scriptTag = siteId
     ? `<script src="https://feedbackhub.io/widget.js" data-fhub-id="${siteId}" data-position="${widgetPosition}"></script>`
     : "";
-  const { setupLoading } = useSetupStore();
 
-  const generateSite = async () => {
-    const site = await addSite(webName);
-    console.log(site);
-    if (site) {
-      setSiteId(site.newSite.siteId);
-      setScriptGenerated(true);
-    }
+  const generateSite = () => {
+    if (!webName) return toast.error("Please enter a website name");
+
+    addSiteMutation.mutate(webName, {
+      onSuccess: (data) => {
+        if (data?.newSite) {
+          setSiteId(data.newSite.siteId);
+          setScriptGenerated(true);
+        }
+      },
+      onError: (err: any) => {
+        toast.error(err?.message || "Failed to create site");
+      },
+    });
   };
 
   const copyToClipboard = () => {
@@ -77,6 +84,7 @@ const SetupWidget = () => {
     toast.success("Copied to clipboard!");
     setTimeout(() => setCopied(false), 2000);
   };
+  const setupLoading = addSiteMutation.isPending;
 
   return (
     <div className="rounded-lg border bg-white dark:bg-white/3 border-gray-300 dark:border-gray-700 transition-colors bg-card text-card-foreground shadow-md">
@@ -109,7 +117,7 @@ const SetupWidget = () => {
             id="widget-position"
             className="w-full p-2 rounded-md bg-white dark:bg-white/3 text-sm text-gray-800 dark:text-white focus:outline-none focus:shadow-md focus:ring-blue-300 focus:border-blue-300 border border-gray-300 dark:border-gray-600 transition duration-200"
             value={widgetPosition}
-            onChange={(e) => setWidgetPosition(e.target.value)}
+            onChange={(e) => setWidgetPosition(e.target.value as "bottom-right" | "bottom-left" | "top-right" | "top-left")}
           >
             <option value="bottom-right">Bottom Right</option>
             <option value="bottom-left">Bottom Left</option>

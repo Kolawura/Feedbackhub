@@ -1,26 +1,21 @@
 import { Link } from "react-router-dom";
-import { useFeedbackStore } from "../../Store/useFeedbackStore";
-import { useEffect } from "react";
 import { Feedback } from "../../Type";
 import Loader from "../ui/Loader";
 import { EmptyState } from "../ui/EmptyState";
-import { fetchFeedbacks } from "../../Hooks/useFetch";
+import { useFeedbacks } from "../../Hooks/useFeedback";
 
 const RecentFeedback = () => {
-  const { feedbacks, loading } = useFeedbackStore();
-  useEffect(() => {
-    fetchFeedbacks();
-  }, [fetchFeedbacks]);
+  const { data: feedbacks, isLoading } = useFeedbacks();
 
-  const recentFeedbacks: Feedback[] = feedbacks.slice(0, 3);
+  const recentFeedbacks: Feedback[] | undefined = feedbacks?.slice(0, 3);
   return (
     <div className="bg-white dark:bg-white/3 shadow rounded-lg p-4">
       <h2 className="text-lg font-semibold mb-4 text-gray-600 dark:text-gray-100">
         Recent Feedback
       </h2>
-      {loading ? (
+      {isLoading ? (
         <Loader />
-      ) : feedbacks.length === 0 ? (
+      ) : feedbacks?.length === 0 ? (
         <EmptyState
           message="No Feedback message Available"
           variant="feedback"
@@ -35,7 +30,7 @@ const RecentFeedback = () => {
             </tr>
           </thead>
           <tbody>
-            {recentFeedbacks.map((fb) => (
+            {recentFeedbacks?.map((fb) => (
               <tr
                 key={fb.id}
                 className="border-t border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300"

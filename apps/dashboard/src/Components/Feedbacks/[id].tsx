@@ -1,17 +1,17 @@
 import { useParams } from "react-router-dom";
 import FeedbackNotFound from "./FeedBackNotFound";
-import { useFeedbackStore } from "../../Store/useFeedbackStore";
 import { Feedback } from "../../Type";
 import LoadingPage from "../../Pages/LoadingPage";
 import ErrorPage from "../../Pages/ErrorPage";
+import { useFeedbacks } from "../../Hooks/useFeedback";
 
 export default function FeedbackDetail() {
-  const { feedbacks, loading, error } = useFeedbackStore();
+  const { data: feedbacks, isLoading: loading, error } = useFeedbacks();
   const { id } = useParams();
-  const feedback: Feedback | undefined = feedbacks.find((f) => f.id === id);
+  const feedback: Feedback | undefined = feedbacks?.find((f) => f.id === id);
 
   if (loading) return <LoadingPage />;
-  if (error) return <ErrorPage errorMessage={error} />;
+  if (error) return <ErrorPage errorMessage={error.message} />;
   if (!feedback) return <FeedbackNotFound />;
 
   return (

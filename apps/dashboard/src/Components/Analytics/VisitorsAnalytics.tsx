@@ -14,7 +14,7 @@ import { useVisitorStore } from "../../Store/useVisitorStore";
 import Loader from "../ui/Loader";
 import { EmptyState } from "../ui/EmptyState";
 import { useSetupStore } from "../../Store/useSetupStore";
-import { fetchVisitorsAnalytics } from "../../Hooks/useFetch";
+import { useVisitorsAnalytics } from "../../Hooks/useAnalytics";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
@@ -33,23 +33,22 @@ const VisitorAnalytics = () => {
   const currentRange =
     timeRanges.find((range) => range.id === selected)?.value || "30days";
 
-  useEffect(() => {
-    selectedSiteId && fetchVisitorsAnalytics(currentRange, selectedSiteId);
-  }, [currentRange, selectedSiteId]);
+  const { data, isLoading } = useVisitorsAnalytics(
+    selectedSiteId,
+    currentRange
+  );
 
   const chartData = useMemo(
     () =>
-      selectedSiteId && analytics?.[selectedSiteId]?.[currentRange]
-        ? analytics[selectedSiteId][currentRange]
-        : {
-            labels: [],
-            data: [],
-            label: "",
-          },
-    [analytics, currentRange, selectedSiteId]
+      data ?? {
+        labels: [],
+        data: [],
+        label: "",
+      },
+    [data]
   );
 
-  const data = {
+  const chartJSData = {
     labels: chartData.labels,
     datasets: [
       {
@@ -136,7 +135,7 @@ const VisitorAnalytics = () => {
               variant="analytics"
             />
           ) : (
-            <Bar data={data} options={options} />
+            <Bar data={chartJSData} options={options} />
           )}
         </motion.div>
       </AnimatePresence>
