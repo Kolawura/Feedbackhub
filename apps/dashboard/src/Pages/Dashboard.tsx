@@ -15,12 +15,12 @@ import { useFeedbackStore } from "../Store/useFeedbackStore";
 import Loader from "../Components/ui/Loader";
 import { EmptyState } from "../Components/ui/EmptyState";
 import { StartCardDiv } from "../Components/Dashboard/StartCardDiv";
-import { useAuthStore } from "../Store/useAuthStore";
+import { useAuth } from "../Hooks/useAuth";
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { feedbacks, loading, error } = useFeedbackStore();
-  const { user } = useAuthStore();
+  const { user } = useAuth();
   const recentFeedback = feedbacks.slice(0, 5);
 
   const getPriorityColor = (priority: string) => {

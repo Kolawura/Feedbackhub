@@ -1,8 +1,7 @@
-import { useState, useEffect } from "react";
 import { Logs, Moon, Search, Sun } from "lucide-react";
 import { NavbarProps } from "../../Type";
 import { useThemeStore } from "../../Store/useThemeStore";
-import { useAuthStore } from "../../Store/useAuthStore";
+import { useAuth } from "../../Hooks/useAuth";
 
 export default function Navbar({
   isCollapsed,
@@ -11,7 +10,7 @@ export default function Navbar({
   NavWidth,
 }: NavbarProps) {
   const { theme, toggleTheme } = useThemeStore();
-  const { user } = useAuthStore();
+  const { user } = useAuth();
 
   return (
     <nav

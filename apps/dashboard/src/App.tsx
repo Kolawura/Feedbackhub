@@ -53,7 +53,7 @@ const App = () => {
   if (loading) {
     return <LoadingPage />;
   }
-  if (error) return <ErrorPage errorMessage={error} />;
+  if (error) return <ErrorPage errorMessage={error.message} />;
 
   return (
     <>

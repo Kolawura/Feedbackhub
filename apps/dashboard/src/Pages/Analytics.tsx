@@ -2,7 +2,6 @@ import { DashboardAnalytics } from "../Components/Dashboard/DashboardAnalytics";
 import RecentFeedback from "../Components/Feedbacks/RecentFeedbacks";
 import VisitorAnalytics from "../Components/Analytics/VisitorsAnalytics";
 import TopChannel from "../Components/Dashboard/TopChannel";
-import { useAuthStore } from "../Store/useAuthStore";
 import { StartCardDiv } from "../Components/Dashboard/StartCardDiv";
 
 export function Analytics() {
