@@ -33,7 +33,7 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        await api.post("/api/auth/refresh");
+        await api.post("/api/auth/refresh-token");
         processQueue(null);
         return api(originalRequest);
       } catch (err) {

@@ -24,6 +24,10 @@ export const useAuth = () => {
     retry: false,
     staleTime: 5 * 60 * 1000,
   });
+  if (error?.response?.status === 401) {
+    queryClient.clear(); // clear cached queries
+    navigate("/", { replace: true });
+  }
 
   const login = useMutation({
     mutationFn: loginRequest,
