@@ -1,6 +1,6 @@
 import { MessageSquare, ThumbsUp, ThumbsDown, Globe } from "lucide-react";
 import StatCard from "./StartCard";
-import { useSetupStore } from "../../Store/useSetupStore";
+import { useSiteStore } from "../../Store/useSiteStore";
 import { useFeedbacks } from "../../Hooks/useFeedback";
 import { useSites } from "../../Hooks/useSite";
 import { useDashboardAnalytics } from "../../Hooks/useAnalytics";
@@ -8,7 +8,7 @@ import { useDashboardAnalytics } from "../../Hooks/useAnalytics";
 export const StartCardDiv = () => {
   const { data: feedbacks } = useFeedbacks();
   const { sitesQuery: sites } = useSites();
-  const { selectedSiteId } = useSetupStore();
+  const { selectedSiteId } = useSiteStore();
   const { data: analytics } = useDashboardAnalytics(selectedSiteId);
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">

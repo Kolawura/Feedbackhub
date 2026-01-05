@@ -21,7 +21,7 @@ export const FilterControls: React.FC<{
   categoryFilter: string;
   setCategoryFilter: (category: string) => void;
   onClearFilters: () => void;
-  sites: Site[];
+  sites: Site[] | undefined;
   selectedSiteId: string | null;
   selectSiteId: (siteId: string) => void;
 }> = ({
@@ -99,7 +99,7 @@ export const FilterControls: React.FC<{
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Sites</SelectItem>
-              {sites.map((site) => {
+              {sites?.map((site) => {
                 return (
                   <SelectItem key={site.siteId} value={site.siteId}>
                     {site.name}

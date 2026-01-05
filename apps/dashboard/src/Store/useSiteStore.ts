@@ -10,7 +10,7 @@ interface SetupState {
   ) => void;
 }
 
-export const useSetupStore = create<SetupState>()(
+export const useSiteStore = create<SetupState>()(
   persist(
     (set) => ({
       selectedSiteId: null,

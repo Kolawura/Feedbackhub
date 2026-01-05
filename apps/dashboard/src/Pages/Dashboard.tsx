@@ -11,17 +11,17 @@ import { Button } from "../Components/ui/Button";
 import { motion } from "framer-motion";
 import { RecentFeedbackItem } from "../Components/Feedbacks/RecentFeedbackItem";
 import { useNavigate } from "react-router-dom";
-import { useFeedbackStore } from "../Store/useFeedbackStore";
 import Loader from "../Components/ui/Loader";
 import { EmptyState } from "../Components/ui/EmptyState";
 import { StartCardDiv } from "../Components/Dashboard/StartCardDiv";
 import { useAuth } from "../Hooks/useAuth";
+import { useFeedbacks } from "../Hooks/useFeedback";
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { feedbacks, loading, error } = useFeedbackStore();
+  const { data: feedbacks, isLoading, error } = useFeedbacks();
   const { user } = useAuth();
-  const recentFeedback = feedbacks.slice(0, 5);
+  const recentFeedback = feedbacks?.slice(0, 5);
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -68,9 +68,9 @@ const Dashboard: React.FC = () => {
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: 0.6, duration: 0.5 }}
       >
-        {feedbacks.length === 0 ? (
+        {feedbacks?.length === 0 ? (
           <EmptyState message="No feedback data available" variant="feedback" />
-        ) : loading ? (
+        ) : isLoading ? (
           <Loader message="Loading feedbacks..." />
         ) : (
           <Card>
@@ -89,7 +89,7 @@ const Dashboard: React.FC = () => {
             {feedbacks ? (
               <CardContent>
                 <div className="space-y-4">
-                  {recentFeedback.map((feedback) => (
+                  {recentFeedback?.map((feedback) => (
                     <RecentFeedbackItem
                       key={feedback.id}
                       feedback={feedback}
@@ -100,7 +100,7 @@ const Dashboard: React.FC = () => {
                 </div>
               </CardContent>
             ) : (
-              <div>{error}</div>
+              <div>{error?.message}</div>
             )}
           </Card>
         )}

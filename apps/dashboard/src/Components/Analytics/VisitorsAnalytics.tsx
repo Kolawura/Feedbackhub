@@ -10,10 +10,9 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-import { useVisitorStore } from "../../Store/useVisitorStore";
 import Loader from "../ui/Loader";
 import { EmptyState } from "../ui/EmptyState";
-import { useSetupStore } from "../../Store/useSetupStore";
+import { useSiteStore } from "../../Store/useSiteStore";
 import { useVisitorsAnalytics } from "../../Hooks/useAnalytics";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
@@ -27,9 +26,7 @@ const VisitorAnalytics = () => {
     { id: "optionFour", label: "7 days", value: "7days" },
     { id: "optionFive", label: "24 hours", value: "24hours" },
   ];
-  const { selectedSiteId } = useSetupStore();
-
-  const { analytics, loading } = useVisitorStore();
+  const { selectedSiteId } = useSiteStore();
   const currentRange =
     timeRanges.find((range) => range.id === selected)?.value || "30days";
 
@@ -85,7 +82,7 @@ const VisitorAnalytics = () => {
     },
   };
 
-  const noData = !loading && chartData.data.length === 0;
+  const noData = !isLoading && chartData.data.length === 0;
 
   return (
     <div className="bg-white dark:bg-white/3 shadow rounded-lg p-4 m-4">
@@ -127,7 +124,7 @@ const VisitorAnalytics = () => {
           transition={{ duration: 0.3, ease: "easeInOut" }}
           className="h-[400px] flex items-center justify-center"
         >
-          {loading ? (
+          {isLoading ? (
             <Loader message="Loading visitor analytics..." />
           ) : noData ? (
             <EmptyState

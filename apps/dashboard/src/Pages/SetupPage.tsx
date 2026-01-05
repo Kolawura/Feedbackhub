@@ -10,7 +10,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
-import { useSetupStore } from "../Store/useSetupStore";
+import { useSiteStore } from "../Store/useSiteStore";
 import { useSites } from "../Hooks/useSite";
 
 export const SetupPage = () => {
@@ -54,8 +54,8 @@ const SetupWidget = () => {
   const [webName, setWebName] = useState("");
   const [siteId, setSiteId] = useState("");
 
-  const widgetPosition = useSetupStore((state) => state.widgetPosition);
-  const setWidgetPosition = useSetupStore((state) => state.setWidgetPosition);
+  const widgetPosition = useSiteStore((state) => state.widgetPosition);
+  const setWidgetPosition = useSiteStore((state) => state.setWidgetPosition);
   const { sitesQuery, addSiteMutation } = useSites();
 
   const scriptTag = siteId
@@ -117,7 +117,15 @@ const SetupWidget = () => {
             id="widget-position"
             className="w-full p-2 rounded-md bg-white dark:bg-white/3 text-sm text-gray-800 dark:text-white focus:outline-none focus:shadow-md focus:ring-blue-300 focus:border-blue-300 border border-gray-300 dark:border-gray-600 transition duration-200"
             value={widgetPosition}
-            onChange={(e) => setWidgetPosition(e.target.value as "bottom-right" | "bottom-left" | "top-right" | "top-left")}
+            onChange={(e) =>
+              setWidgetPosition(
+                e.target.value as
+                  | "bottom-right"
+                  | "bottom-left"
+                  | "top-right"
+                  | "top-left"
+              )
+            }
           >
             <option value="bottom-right">Bottom Right</option>
             <option value="bottom-left">Bottom Left</option>

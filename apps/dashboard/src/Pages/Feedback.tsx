@@ -2,26 +2,24 @@
 import type React from "react";
 import { useEffect, useState } from "react";
 import { AlertCircle, CheckCircle, Clock } from "lucide-react";
-import { useFeedbackStore } from "../Store/useFeedbackStore";
 import { FilterControls } from "../Components/Feedbacks/FilterControls";
 import { FeedbackItem } from "../Components/Feedbacks/FeedbackItem";
 import LoadingPage from "./LoadingPage";
 import toast from "react-hot-toast";
 import ErrorPage from "./ErrorPage";
+import { useSiteStore } from "../Store/useSiteStore";
+import { useFeedbacks } from "../Hooks/useFeedback";
+import { useSites } from "../Hooks/useSite";
 import NoFeedbacks from "../Components/Feedbacks/NoFeedbacks";
-import { useSetupStore } from "../Store/useSetupStore";
-import { fetchFeedbacks, fetchSiteFeedbacks } from "../Hooks/useFetch";
 
 const Feedback: React.FC = () => {
-  const { feedbacks, loading, error } = useFeedbackStore();
-
-  const { sites, selectedSiteId, selectSiteId } = useSetupStore();
-  console.log(sites);
-
-  useEffect(() => {
-    fetchFeedbacks();
-    if (selectedSiteId) fetchSiteFeedbacks(selectedSiteId);
-  }, [selectedSiteId]);
+  const { selectedSiteId, selectSiteId } = useSiteStore();
+  const {
+    data: feedbacks,
+    isLoading,
+    error,
+  } = useFeedbacks(selectedSiteId ?? undefined);
+  const { data: sites } = useSites().sitesQuery;
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -95,10 +93,10 @@ const Feedback: React.FC = () => {
     setCategoryFilter("all");
     selectSiteId(null);
   };
-  if (error) toast.error(error);
-  if (loading) return <LoadingPage />;
-  if (error) return <ErrorPage errorMessage={error} />;
-  // if (feedbacks.length === 0) return <NoFeedbacks />;
+  if (error) toast.error(error.message);
+  if (isLoading) return <LoadingPage />;
+  if (error) return <ErrorPage errorMessage={error.message} />;
+  if (feedbacks?.length === 0) return <NoFeedbacks />;
 
   return (
     <div className="space-y-6 text-gray-900 dark:text-gray-100 transition-all duration-200">
@@ -127,11 +125,11 @@ const Feedback: React.FC = () => {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold">
-            {filteredFeedback.length} feedback items
+            {filteredFeedback?.length} feedback items
           </h2>
         </div>
 
-        {filteredFeedback.map((feedback) => (
+        {filteredFeedback?.map((feedback) => (
           <FeedbackItem
             key={feedback.id}
             feedback={feedback}

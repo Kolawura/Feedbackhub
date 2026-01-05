@@ -14,8 +14,7 @@ import {
 import { Chart } from "react-chartjs-2";
 import { EmptyState } from "../ui/EmptyState";
 import Loader from "../ui/Loader";
-import { useSetupStore } from "../../Store/useSetupStore";
-import { fetchAnalytics } from "../../Hooks/useFetch";
+import { useSiteStore } from "../../Store/useSiteStore";
 import { useDashboardAnalytics } from "../../Hooks/useAnalytics";
 
 ChartJS.register(
@@ -30,7 +29,7 @@ ChartJS.register(
 );
 
 export const DashboardAnalytics = () => {
-  const { selectedSiteId } = useSetupStore();
+  const { selectedSiteId } = useSiteStore();
   const { data: analytics, isLoading: loading } =
     useDashboardAnalytics(selectedSiteId);
 
