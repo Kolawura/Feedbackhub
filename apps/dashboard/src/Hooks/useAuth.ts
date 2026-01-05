@@ -8,9 +8,8 @@ import {
   registerRequest,
 } from "../lib/auth";
 
-const location = useLocation();
-
 export const useAuth = () => {
+  const location = useLocation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
