@@ -21,7 +21,5 @@ export const useFeedbacks = (siteId?: string, visitorId?: string) => {
       toast.success(res.data.message);
       return res.data.data;
     },
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
   });
 };

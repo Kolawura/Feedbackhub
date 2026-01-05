@@ -2,12 +2,14 @@ import {
   ChartNoAxesCombined,
   Home,
   LayoutDashboard,
+  LogOut,
   MessageSquare,
   MessageSquareCode,
   Settings,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { SidebarProps } from "../../Type";
+import { useAuth } from "../../Hooks/useAuth";
 
 const Sidebar = ({
   isCollapsed,
@@ -18,6 +20,7 @@ const Sidebar = ({
   console.log(isCollapsed);
 
   const location = useLocation();
+  const { user, logout } = useAuth();
 
   const links = [
     {
@@ -82,6 +85,40 @@ const Sidebar = ({
         })}
       </nav>
       <div className="flex justify-center items-center">about user</div>
+
+      <div className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-sidebar-accent/10 cursor-pointer">
+        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-accent to-primary flex items-center justify-center flex-shrink-0">
+          <span className="text-sm font-bold text-accent-foreground">
+            {/* {user?.bannerImg && (
+              <Image
+                src={user.bannerImg}
+                alt={`${user.firstName} ${user.lastName} Avatar`}
+                width={40}
+                height={40}
+                className="rounded-full"
+              />
+            )} */}
+            {user?.firstName.charAt(0)}
+            {user?.lastName.charAt(0)}
+          </span>
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-sidebar-foreground truncate">
+            {user?.firstName} {user?.lastName}
+          </p>
+          <p className="text-xs text-sidebar-foreground/60 truncate">
+            @{user?.username}
+          </p>
+        </div>
+      </div>
+
+      <button
+        onClick={() => logout()}
+        className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sidebar-foreground hover:bg-sidebar-accent/90 rounded-lg text-sm font-medium"
+      >
+        <LogOut className="w-4 h-4" />
+        Logout
+      </button>
     </aside>
   );
 };

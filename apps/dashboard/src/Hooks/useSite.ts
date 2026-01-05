@@ -12,7 +12,7 @@ export const useSites = () => {
       const res = await api.get("/api/site/all", { withCredentials: true });
       return res.data.sites;
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: Infinity,
   });
 
   const addSiteMutation = useMutation({

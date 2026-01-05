@@ -8,7 +8,7 @@ const generateTokens = (adminId: string) => {
   const secret = process.env.JWT_SECRET!;
   const refreshSecret = process.env.JWT_REFRESH_SECRET!;
 
-  const accessToken = jwt.sign({ id: adminId }, secret, { expiresIn: "15m" });
+  const accessToken = jwt.sign({ id: adminId }, secret, { expiresIn: "24h" });
   const refreshToken = jwt.sign({ id: adminId }, refreshSecret, {
     expiresIn: "7d",
   });
@@ -66,7 +66,7 @@ export const registerAdmin = async (
       httpOnly: true,
       secure: true,
       sameSite: "none",
-      maxAge: 15 * 60 * 1000,
+      maxAge: 24 * 60 * 60 * 1000,
     });
 
     res.cookie("refreshToken", refreshToken, {
@@ -140,7 +140,7 @@ export const loginAdmin = async (
       httpOnly: true,
       secure: true,
       sameSite: "none",
-      maxAge: 15 * 60 * 1000,
+      maxAge: 24 * 60 * 60 * 1000,
     });
 
     res.cookie("refreshToken", refreshToken, {
@@ -230,14 +230,14 @@ export const refreshAccessToken = async (
       return;
     }
     const accessToken = jwt.sign({ id: decoded.id }, process.env.JWT_SECRET!, {
-      expiresIn: "15m",
+      expiresIn: "24h",
     });
 
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
       secure: true,
       sameSite: "none",
-      maxAge: 15 * 60 * 1000,
+      maxAge: 24 * 60 * 60 * 1000,
     });
 
     const admin = await Admin.findById(decoded.id).select("-password");

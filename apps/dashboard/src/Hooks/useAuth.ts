@@ -21,7 +21,7 @@ export const useAuth = () => {
     queryKey: ["me"],
     queryFn: getMe,
     retry: false,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 23 * 60 * 60 * 1000,
   });
 
   const login = useMutation({
