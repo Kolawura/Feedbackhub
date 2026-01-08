@@ -55,23 +55,32 @@ const Sidebar = ({
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       className={`${
-        Expand ? "w-64" : "w-16 "
+        Expand ? "w-16 md:w-64" : "w-16 "
       } mt-16 lg:mt-0 fixed h-screen transition-all duration-200 dark:bg-gray-900 bg-white text-gray-700 border-r border-gray-200 dark:border-gray-800 dark:text-gray-200 flex flex-col`}
     >
       <div className="flex items-center justify-center h-16 mb-10 gap-4 border-b border-gray-300 dark:border-gray-700">
         <MessageSquareCode size={25} />
-        {Expand && <h2 className="text-2xl font-semibold">FeedbackHub</h2>}
+        {Expand && (
+          <h2
+            className={`${
+              Expand ? "hidden md:flex" : ""
+            } text-2xl font-semibold`}
+          >
+            FeedbackHub
+          </h2>
+        )}
       </div>
 
-      <nav className="flex flex-col p-4 gap-2">
+      <nav className="flex flex-col py-4 px-0 md:px-4 gap-2">
         {links.map((link) => {
           const isActive = location.pathname === link.path;
           return (
             <Link
+              aria-label={link.name}
               key={link.name}
               to={link.path}
-              className={`flex items-center gap-2 rounded-lg px-4 py-2 text-lg h-12 ${
-                Expand ? "" : "justify-center "
+              className={`flex items-center gap-2 rounded-lg m-auto md:m-0 px-3 md:px-4 py-2 text-lg h-12 ${
+                Expand ? "md:justify-start" : "justify-center "
               }${
                 isActive
                   ? "text-blue-600 dark:text-blue-600 font-semibold hover:bg-blue-100 dark:hover:bg-blue-950 "
@@ -79,7 +88,7 @@ const Sidebar = ({
               }`}
             >
               <div>{link.icon}</div>
-              {Expand && <span>{link.name}</span>}
+              {Expand && <span className="hidden md:flex">{link.name}</span>}
             </Link>
           );
         })}
@@ -88,7 +97,7 @@ const Sidebar = ({
       <div className="flex flex-col p-4 gap-2 absolute bottom-16 lg:bottom-0 w-full bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
         <div
           className={`flex items-center gap-2 rounded-lg px-4 py-2 text-lg h-12 ${
-            Expand ? "" : "justify-center "
+            Expand ? "justify-center md:justify-start" : "justify-center"
           }`}
         >
           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-accent to-primary flex items-center justify-center flex-shrink-0">
@@ -119,11 +128,13 @@ const Sidebar = ({
           type="button"
           onClick={() => logout()}
           className={`flex items-center gap-2 rounded-lg py-2 text-sm h-12 ${
-            Expand ? "px-4" : "justify-center"
-          }`}
+            Expand
+              ? "justify-center md:px-4 md:justify-start"
+              : "justify-center"
+          } `}
         >
           <LogOut />
-          {Expand && <span> Logout </span>}
+          {Expand && <span className="hidden md:flex"> Logout </span>}
         </button>
       </div>
     </aside>
