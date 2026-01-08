@@ -1,9 +1,16 @@
 // auth.api.ts
+import { AxiosError } from "axios";
 import { api } from "../lib/axios";
 
 export const getMe = async () => {
-  const res = await api.get("/api/auth/me", { withCredentials: true });
-  return res.data.data;
+  try {
+    const res = await api.get("/api/auth/me", { withCredentials: true });
+    return res.data.data;
+  } catch (e) {
+    const err = e as AxiosError;
+    if (err.response?.status === 401) return null;
+    throw err;
+  }
 };
 
 export const loginRequest = async (data: {

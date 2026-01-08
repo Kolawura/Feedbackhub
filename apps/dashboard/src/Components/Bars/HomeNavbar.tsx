@@ -21,22 +21,22 @@ const HomeNavbar = () => {
           FeedbackHub
         </Link>
         <div className="hidden md:flex items-center space-x-6">
-          <Link
-            to="/dashboard"
-            className={`${
-              !!user ? "" : "hidden"
-            }text-sm font-medium text-gray-700 dark:text-gray-200 hover:underline hover:decoration-blue-500 px-4 py-2 rounded-md transition`}
-          >
-            Dashboard
-          </Link>
-          <Link
-            to="/setup"
-            className={`${
-              !!user ? "" : "hidden"
-            }text-sm font-medium text-gray-700 dark:text-gray-200 hover:underline hover:decoration-blue-500 px-4 py-2 rounded-md transition`}
-          >
-            Setup
-          </Link>
+          {user && (
+            <Link
+              to="/dashboard"
+              className="text-sm font-medium text-gray-700 dark:text-gray-200 hover:underline hover:decoration-blue-500 px-4 py-2 rounded-md transition"
+            >
+              Dashboard
+            </Link>
+          )}
+          {user && (
+            <Link
+              to="/setup"
+              className="text-sm font-medium text-gray-700 dark:text-gray-200 hover:underline hover:decoration-blue-500 px-4 py-2 rounded-md transition"
+            >
+              Setup
+            </Link>
+          )}
           <Link
             to="/login"
             className="text-sm font-medium text-gray-700 dark:text-gray-200 hover:underline px-4 py-2 rounded-md transition"
@@ -97,22 +97,22 @@ const HomeNavbar = () => {
       </div>
       {isOpen && (
         <div className="md:hidden px-6 pb-4 space-y-2">
-          <Link
-            to="/dashboard"
-            className={`${
-              !!user ? "" : "hidden"
-            }block text-sm text-gray-700 dark:text-gray-200`}
-          >
-            Dashboard
-          </Link>
-          <Link
-            to="/setup"
-            className={`${
-              !!user ? "" : "hidden"
-            }block text-sm text-gray-700 dark:text-gray-200`}
-          >
-            Setup
-          </Link>
+          {user && (
+            <Link
+              to="/dashboard"
+              className="block text-sm text-gray-700 dark:text-gray-200"
+            >
+              Dashboard
+            </Link>
+          )}
+          {user && (
+            <Link
+              to="/setup"
+              className="block text-sm text-gray-700 dark:text-gray-200"
+            >
+              Setup
+            </Link>
+          )}
           <Link
             to="/login"
             className="block text-sm text-gray-700 dark:text-gray-200"

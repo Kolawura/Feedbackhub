@@ -20,6 +20,16 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+    const url = originalRequest?.url || "";
+
+    // ✅ Don't try to refresh on these endpoints (prevents infinite loop)
+    const noRefreshEndpoints = [
+      "/api/auth/refresh-token",
+      "/api/auth/logout",// ⭐ strongly recommended to avoid loops on app load
+    ];
+    if (noRefreshEndpoints.some((p) => url.includes(p))) {
+      return Promise.reject(error);
+    }
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
@@ -38,7 +48,9 @@ api.interceptors.response.use(
         return api(originalRequest);
       } catch (err) {
         processQueue(err, null);
-        window.location.href = "/";
+        if (window.location.pathname !== "/") {
+          window.location.replace("/");
+        }
         return Promise.reject(err);
       } finally {
         isRefreshing = false;
