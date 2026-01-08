@@ -34,7 +34,7 @@ export const DashboardRoute = ({
       />
       <main
         className={`flex-1 transition-all duration-200 overflow-x-hidden ml-16 ${
-          Expand ? "lg:ml-64" : ""
+          Expand ? "ml-64" : ""
         }`}
       >
         <Navbar

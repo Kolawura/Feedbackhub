@@ -12,6 +12,9 @@ export const useDashboardAnalytics = (siteId: string | null) => {
       if (!res.data.success) throw new Error(res.data.message);
       return res.data.data;
     },
+    staleTime: 5 * 60 * 1000,
+    enabled: !!siteId,
+    placeholderData: keepPreviousData,
   });
 };
 
@@ -25,6 +28,7 @@ export const useVisitorsAnalytics = (siteId: string | null, range: string) => {
       );
       return res.data;
     },
+    staleTime: 5 * 60 * 1000,
     enabled: !!siteId,
     placeholderData: keepPreviousData,
   });

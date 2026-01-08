@@ -22,11 +22,8 @@ api.interceptors.response.use(
     const originalRequest = error.config;
     const url = originalRequest?.url || "";
 
-    // ✅ Don't try to refresh on these endpoints (prevents infinite loop)
-    const noRefreshEndpoints = [
-      "/api/auth/refresh-token",
-      "/api/auth/logout",// ⭐ strongly recommended to avoid loops on app load
-    ];
+    // Prevent refresh on these endpoints (prevents infinite loop)
+    const noRefreshEndpoints = ["/api/auth/refresh-token", "/api/auth/logout"];
     if (noRefreshEndpoints.some((p) => url.includes(p))) {
       return Promise.reject(error);
     }

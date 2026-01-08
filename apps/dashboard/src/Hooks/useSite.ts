@@ -27,7 +27,7 @@ export const useSites = () => {
     onSuccess: (data) => {
       if (data.success) {
         toast.success(data.message);
-        queryClient.setQueryData(["sites"], data.sites); // update cache
+        queryClient.setQueryData(["sites"], data.sites);
       }
     },
     onError: () => toast.error("Failed to create site"),

@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { api } from "../lib/axios";
 import { Feedback } from "../Type";
 import toast from "react-hot-toast";
@@ -21,5 +21,7 @@ export const useFeedbacks = (siteId?: string, visitorId?: string) => {
       toast.success(res.data.message);
       return res.data.data;
     },
+    staleTime: 5 * 60 * 1000,
+    placeholderData: keepPreviousData,
   });
 };
