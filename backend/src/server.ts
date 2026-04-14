@@ -25,6 +25,7 @@ app.use(
       "https://feedbackhub-kappa.vercel.app",
       "http://localhost:5173",
       "http://localhost:5174",
+      "https://widgetfb.netlify.app",
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
