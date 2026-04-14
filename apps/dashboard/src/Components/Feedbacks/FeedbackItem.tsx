@@ -29,11 +29,11 @@ export const FeedbackItem: React.FC<{
                 <div>
                   <h3 className="font-semibold text-lg">{feedback.title}</h3>
                   <p className="text-sm text-muted-foreground">
-                    by {feedback.sender.name} ({feedback.sender.email})
+                    by {feedback.name} ({feedback.userInfo.email})
                   </p>
                 </div>
                 <div className="flex items-center space-x-2">
-                  {getStatusIcon(feedback.status)}
+                  {getStatusIcon(feedback.status ? feedback.status : "open")}
                   <Badge variant={getPriorityColor(feedback.priority) as any}>
                     {feedback.priority}
                   </Badge>
@@ -46,7 +46,7 @@ export const FeedbackItem: React.FC<{
               <p className="text-muted-foreground">{feedback.description}</p>
 
               <div className="flex flex-wrap gap-2">
-                {feedback.tags.map((tag) => (
+                {feedback.tags?.map((tag) => (
                   <Badge key={tag} variant="outline" className="text-xs">
                     {tag}
                   </Badge>

@@ -22,7 +22,7 @@ const generateTokens = (adminId: string) => {
 // @access  Public
 export const registerAdmin = async (
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   const validateAuth = registerSchema.safeParse(req.body);
 
@@ -60,7 +60,7 @@ export const registerAdmin = async (
     });
 
     const { accessToken, refreshToken } = generateTokens(
-      newAdmin._id.toString()
+      newAdmin._id.toString(),
     );
 
     res.cookie("accessToken", accessToken, {
@@ -102,7 +102,7 @@ export const registerAdmin = async (
 // @access  Public
 export const loginAdmin = async (
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   const validateAuth = loginSchema.safeParse(req.body);
 
@@ -121,18 +121,14 @@ export const loginAdmin = async (
     const admin = await Admin.findOne({
       $or: [{ username: identifier }, { email: identifier }],
     });
-    if (admin) {
-      admin.AdminSite = [];
-    }
-    console.log("Admin found?", admin);
-    console.log(
-      "Password correct?",
-      admin && (await admin.matchPassword(password))
-    );
 
     if (!admin || !(await admin.matchPassword(password))) {
       res.status(401).json({ success: false, message: "Invalid credentials" });
       return;
+    }
+
+    if (admin) {
+      admin.AdminSite = [];
     }
 
     const { accessToken, refreshToken } = generateTokens(admin._id.toString());
@@ -211,7 +207,7 @@ export const getMe = async (req: Request, res: Response): Promise<void> => {
 
 export const refreshAccessToken = async (
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   const token = req.cookies.refreshToken;
 
@@ -270,7 +266,7 @@ export const refreshAccessToken = async (
 // @access Public
 export const logoutAdmin = async (
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   res.clearCookie("accessToken", {
     httpOnly: true,

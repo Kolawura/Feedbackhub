@@ -32,14 +32,14 @@ const RecentFeedback = () => {
           <tbody>
             {recentFeedbacks?.map((fb) => (
               <tr
-                key={fb.id}
+                key={fb._id}
                 className="border-t border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300"
               >
-                <td className="py-2">{fb.sender.name}</td>
+                <td className="py-2">{fb.name}</td>
                 <td className="py-2">{fb.title}</td>
                 <td className="py-2">
                   <Link
-                    to={`/feedback/${fb.id}`}
+                    to={`/feedback/${fb._id}`}
                     className="text-blue-600 hover:underline"
                   >
                     View

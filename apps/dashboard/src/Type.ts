@@ -29,22 +29,26 @@ export type WidgetConfig = {
 };
 
 export interface Feedback {
-  id: string;
+  _id: string;
+  siteId: string;
   title: string;
   description: string;
+  name: string;
   category: "bug" | "feature" | "improvement" | "other";
   priority: "low" | "medium" | "high" | "critical";
-  status: "open" | "in-progress" | "resolved" | "closed";
-  sender: {
-    id: string;
-    name: string;
+  status?: "open" | "in-progress" | "resolved" | "closed";
+  userInfo: {
+    browser: string;
+    os: string;
+    ip: string;
+    location: string;
     email: string;
-    avatar?: string;
   };
+  visitorId: string;
   createdAt: string;
   updatedAt: string;
-  votes: number;
-  tags: string[];
+  votes?: number;
+  tags?: string[];
 }
 
 export interface AnalyticsData {

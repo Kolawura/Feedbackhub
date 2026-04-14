@@ -7,9 +7,10 @@ import { visitorSchema } from "../schema/visitorSchema.js";
 // @access  Public
 export const trackVisitor = async (
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   try {
+    console.log(req.body);
     const validateVisitor = visitorSchema.safeParse(req.body);
 
     if (!validateVisitor.success) {
@@ -18,11 +19,12 @@ export const trackVisitor = async (
         message: "Invalid input",
         errors: validateVisitor.error.flatten().fieldErrors,
       });
+      console.log(validateVisitor.error);
       return;
     }
-    const visitorData = await Visitor.create(validateVisitor);
+    const visitorData = await Visitor.create(validateVisitor.data);
     res.status(201).json({
-      success: false,
+      success: true,
       message: "Visitor tracked",
       data: visitorData,
     });
@@ -38,7 +40,7 @@ export const trackVisitor = async (
 
 export const appendPageVisit = async (
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   const { siteId, visitorId, sessionStart, page } = req.body;
 
@@ -96,7 +98,7 @@ export const appendPageVisit = async (
 // @access  Private (Admin)
 export const getAnalytics = async (
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   const { siteId } = req.params;
   const { range } = req.query; // e.g. "30days", "12months", "7days", "4weeks", "24hours"
@@ -116,7 +118,7 @@ export const getAnalytics = async (
         break;
       case "7days":
         startDate.setDate(startDate.getDate() - 7);
-        groupFormat = "%a"; // group by weekday (Mon, Tue…)
+        groupFormat = "%w"; // group by weekday (Mon, Tue…)
         break;
       case "4weeks":
         startDate.setDate(startDate.getDate() - 28);

@@ -5,10 +5,10 @@ import toast from "react-hot-toast";
 
 export const useFeedbacks = (siteId?: string, visitorId?: string) => {
   const key = siteId
-    ? ["feedbacks", siteId]
+    ? ["siteFilteredFeedbacks", siteId]
     : visitorId
-    ? ["feedbacks", visitorId]
-    : ["feedbacks"];
+      ? ["visitorFilteredFeedbacks", visitorId]
+      : ["feedbacks"];
 
   return useQuery<Feedback[]>({
     queryKey: key,
@@ -18,7 +18,6 @@ export const useFeedbacks = (siteId?: string, visitorId?: string) => {
       if (visitorId) url = `/api/feedback/by-visitor/${visitorId}`;
       const res = await api.get(url);
       if (!res.data.success) throw new Error(res.data.message);
-      toast.success(res.data.message);
       return res.data.data;
     },
     staleTime: 5 * 60 * 1000,

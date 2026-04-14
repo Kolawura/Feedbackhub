@@ -17,6 +17,7 @@ import { Toaster } from "react-hot-toast";
 import { useThemeStore } from "./Store/useThemeStore";
 import ErrorPage from "./Pages/ErrorPage";
 import { useAuth } from "./Hooks/useAuth";
+import NotFoundPage from "./Pages/NotFoundPage";
 
 const App = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -36,6 +37,12 @@ const App = () => {
     }
   }, [theme]);
 
+  // // useEffect(() => {
+  //   setTimeout(() => {
+  //   }, 2000);
+  //   // return
+  // }, [error]);
+
   const handleMouseEnter = () => {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
@@ -53,12 +60,14 @@ const App = () => {
   if (loading) {
     return <LoadingPage />;
   }
+
   if (error) return <ErrorPage errorMessage={error.message} />;
 
   return (
     <>
       <Toaster position="top-center" />
       <Routes>
+        <Route path="*" element={<NotFoundPage />} />
         <Route element={<PublicRoute />}>
           <Route path="/" element={<Home />} />
         </Route>

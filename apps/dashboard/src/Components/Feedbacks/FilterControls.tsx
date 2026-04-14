@@ -23,7 +23,7 @@ export const FilterControls: React.FC<{
   onClearFilters: () => void;
   sites: Site[] | undefined;
   selectedSiteId: string | null;
-  selectSiteId: (siteId: string) => void;
+  setSelectedSiteId: (siteId: string) => void;
 }> = ({
   searchTerm,
   setSearchTerm,
@@ -36,7 +36,7 @@ export const FilterControls: React.FC<{
   onClearFilters,
   sites,
   selectedSiteId,
-  selectSiteId,
+  setSelectedSiteId,
 }) => {
   return (
     <Card>
@@ -93,7 +93,10 @@ export const FilterControls: React.FC<{
               <SelectItem value="other">Other</SelectItem>
             </SelectContent>
           </Select>
-          <Select value={selectedSiteId ?? "all"} onValueChange={selectSiteId}>
+          <Select
+            value={selectedSiteId ?? "all"}
+            onValueChange={setSelectedSiteId}
+          >
             <SelectTrigger>
               <SelectValue placeholder="Site" />
             </SelectTrigger>

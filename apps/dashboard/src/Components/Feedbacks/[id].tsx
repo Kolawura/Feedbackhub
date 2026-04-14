@@ -8,7 +8,7 @@ import { useFeedbacks } from "../../Hooks/useFeedback";
 export default function FeedbackDetail() {
   const { data: feedbacks, isLoading: loading, error } = useFeedbacks();
   const { id } = useParams();
-  const feedback: Feedback | undefined = feedbacks?.find((f) => f.id === id);
+  const feedback: Feedback | undefined = feedbacks?.find((f) => f._id === id);
 
   if (loading) return <LoadingPage />;
   if (error) return <ErrorPage errorMessage={error.message} />;
@@ -23,19 +23,19 @@ export default function FeedbackDetail() {
 
       {/* Sender Info */}
       <div className="flex items-center gap-3 mb-4">
-        {feedback.sender.avatar && (
+        {/* {feedback.sender.avatar && (
           <img
             src={feedback.sender.avatar}
             alt={feedback.sender.name}
             className="w-10 h-10 rounded-full border border-gray-300 dark:border-gray-600"
           />
-        )}
+        )} */}
         <div>
           <p className="text-gray-900 dark:text-white font-semibold">
-            {feedback.sender.name}
+            {feedback.name}
           </p>
           <p className="text-gray-600 dark:text-gray-400 text-sm">
-            {feedback.sender.email}
+            {feedback.userInfo.email}
           </p>
         </div>
       </div>
@@ -62,13 +62,13 @@ export default function FeedbackDetail() {
         <div>
           <p className="text-gray-500 dark:text-gray-400 text-sm">Status</p>
           <p className="text-gray-900 dark:text-white font-medium capitalize">
-            {feedback.status}
+            {feedback.status ? feedback.status : "open"}
           </p>
         </div>
         <div>
           <p className="text-gray-500 dark:text-gray-400 text-sm">Votes</p>
           <p className="text-gray-900 dark:text-white font-medium">
-            {feedback.votes}
+            {feedback.votes ? feedback.votes : 0}
           </p>
         </div>
         <div>
@@ -77,16 +77,18 @@ export default function FeedbackDetail() {
             {new Date(feedback.createdAt).toLocaleString()}
           </p>
         </div>
-        <div>
-          <p className="text-gray-500 dark:text-gray-400 text-sm">Updated</p>
-          <p className="text-gray-900 dark:text-white font-medium">
-            {new Date(feedback.updatedAt).toLocaleString()}
-          </p>
-        </div>
+        {feedback.updatedAt && feedback.updatedAt !== feedback.createdAt && (
+          <div>
+            <p className="text-gray-500 dark:text-gray-400 text-sm">Updated</p>
+            <p className="text-gray-900 dark:text-white font-medium">
+              {new Date(feedback.updatedAt).toLocaleString()}
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Tags */}
-      {feedback.tags.length > 0 && (
+      {feedback.tags && feedback.tags.length > 0 && (
         <div className="mb-4">
           <p className="text-gray-500 dark:text-gray-400 text-sm mb-2">Tags</p>
           <div className="flex flex-wrap gap-2">

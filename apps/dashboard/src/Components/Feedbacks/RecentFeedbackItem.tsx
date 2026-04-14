@@ -20,7 +20,7 @@ export const RecentFeedbackItem: React.FC<{
         {feedback.description}
       </p>
       <div className="flex items-center justify-between text-xs text-gray-500">
-        <span>by {feedback.sender.name}</span>
+        <span>by {feedback?.name}</span>
         <span>{new Date(feedback.createdAt).toLocaleDateString()}</span>
       </div>
     </div>

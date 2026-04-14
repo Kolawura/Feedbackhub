@@ -41,17 +41,16 @@ const feedbackSchema: Schema<IFeedback> = new mongoose.Schema(
     },
 
     visitorId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Visitor",
+      type: String,
     },
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 const Feedback: Model<IFeedback> = mongoose.model<IFeedback>(
   "Feedback",
-  feedbackSchema
+  feedbackSchema,
 );
 export default Feedback;

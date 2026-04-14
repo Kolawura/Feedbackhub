@@ -1,14 +1,15 @@
 import { Request, Response } from "express";
 import Feedback from "../models/feedbackModels.js";
 import { feedbackSchema } from "../schema/feedbackSchema.js";
-import Site from "../models/siteModels.js";
+import Admin from "../models/adminModels.js";
+import { success } from "zod/v4";
 
 // @desc    Submit feedback (public)
 // @route   POST /api/feedback
 // @access  Public
 export const submitFeedback = async (
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   const validateFeedback = feedbackSchema.safeParse(req.body);
 
@@ -73,8 +74,8 @@ export const getAdminFeedbacks = async (req: Request, res: Response) => {
     const adminId = req.admin._id;
 
     // get all sites owned by this admin
-    const sites = await Site.find({ admin: adminId }).select("siteId");
-    const siteIds = sites.map((s) => s.siteId);
+    const admin = await Admin.findById(adminId).select("AdminSite");
+    const siteIds = admin?.AdminSite.map((s) => s.siteId);
 
     // get feedbacks for these sites
     const feedbacks = await Feedback.find({ siteId: { $in: siteIds } });
@@ -95,7 +96,7 @@ export const getAdminFeedbacks = async (req: Request, res: Response) => {
 // @access  Private (Admin)
 export const getFeedbackForSite = async (
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   const siteId = req.params.siteId;
 
@@ -196,16 +197,16 @@ export const getDashboardAnalytics = async (req: Request, res: Response) => {
         (fb.category === "feature" ||
           fb.category === "improvement" ||
           fb.category === "other") &&
-        (fb.priority === "medium" || fb.priority === "low")
+        (fb.priority === "medium" || fb.priority === "low"),
     ).length;
 
     const negative = feedbacks.filter(
       (fb) =>
         fb.category === "bug" &&
-        (fb.priority === "critical" || fb.priority === "high")
+        (fb.priority === "critical" || fb.priority === "high"),
     ).length;
 
-    res.json({ labels, trend, positive, negative });
+    res.json({ success: true, data: { labels, trend, positive, negative } });
   } catch (err) {
     console.error("Analytics error:", err);
     res.status(500).json({ message: "Server error" });

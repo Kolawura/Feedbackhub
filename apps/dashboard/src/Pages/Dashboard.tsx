@@ -90,12 +90,13 @@ const Dashboard: React.FC = () => {
               <CardContent>
                 <div className="space-y-4">
                   {recentFeedback?.map((feedback) => (
-                    <RecentFeedbackItem
-                      key={feedback.id}
-                      feedback={feedback}
-                      getStatusIcon={getStatusIcon}
-                      getPriorityColor={getPriorityColor}
-                    />
+                    <div key={feedback._id}>
+                      <RecentFeedbackItem
+                        feedback={feedback}
+                        getStatusIcon={getStatusIcon}
+                        getPriorityColor={getPriorityColor}
+                      />
+                    </div>
                   ))}
                 </div>
               </CardContent>

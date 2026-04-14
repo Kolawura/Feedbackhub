@@ -12,11 +12,9 @@ const router = express.Router();
 
 router.post("/", submitFeedback);
 router.get("/allFeedbacks", protect, getAdminFeedbacks);
-
-router.get("/:siteId", protect, getFeedbackForSite);
-
-router.get("/by-visitor/:visitorId", protect, getFeedbackByVisitor);
 router.get("/analytics", protect, getDashboardAnalytics);
+router.get("/by-visitor/:visitorId", protect, getFeedbackByVisitor);
 router.get("/analytics/:siteId", protect, getDashboardAnalytics);
+router.get("/:siteId", protect, getFeedbackForSite);
 
 export default router;

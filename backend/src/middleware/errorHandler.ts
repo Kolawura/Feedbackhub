@@ -8,6 +8,10 @@ export const errorHandler = (
 ) => {
   console.error("Error:", err.stack || err.message || err);
 
+  if (res.headersSent) {
+    return next(err);
+  }
+
   const statusCode =
     res.statusCode && res.statusCode !== 200 ? res.statusCode : 500;
 

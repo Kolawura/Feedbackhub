@@ -61,6 +61,7 @@ export const getSiteIds = async (req: Request, res: Response) => {
 export const validateSiteId = async (req: Request, res: Response) => {
   try {
     const { siteId } = req.params;
+    console.log(siteId);
 
     const site = await Site.exists({ siteId });
     if (!site) {
@@ -72,6 +73,11 @@ export const validateSiteId = async (req: Request, res: Response) => {
       });
       return;
     }
+    res.status(200).json({
+      success: true,
+      message: "Site ID is valid",
+    });
+    return;
   } catch (error) {
     console.error("Error validating siteId:", error);
     res.status(500).json({ success: false, message: "Internal server error" });

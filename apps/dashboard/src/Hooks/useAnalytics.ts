@@ -20,11 +20,11 @@ export const useDashboardAnalytics = (siteId: string | null) => {
 
 export const useVisitorsAnalytics = (siteId: string | null, range: string) => {
   return useQuery({
-    queryKey: ["visitors", siteId, range],
+    queryKey: ["visitors", siteId || "all", range],
     queryFn: async () => {
       if (!siteId) throw new Error("Site ID is required");
       const res = await api.get(
-        `/api/visitor/analytics/${siteId}?range=${range}`
+        `/api/visitor/analytics/${siteId}?range=${range}`,
       );
       return res.data;
     },

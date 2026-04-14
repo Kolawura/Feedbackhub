@@ -14,6 +14,9 @@ import NoFeedbacks from "../Components/Feedbacks/NoFeedbacks";
 
 const Feedback: React.FC = () => {
   const { selectedSiteId, selectSiteId } = useSiteStore();
+  const setSelectedSiteId = (value: string) => {
+    selectSiteId(value === "all" ? null : value);
+  };
   const {
     data: feedbacks,
     isLoading,
@@ -30,7 +33,7 @@ const Feedback: React.FC = () => {
     const matchesSearch =
       feedback.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       feedback.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      feedback.sender.name.toLowerCase().includes(searchTerm.toLowerCase());
+      feedback.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus =
       statusFilter === "all" || feedback.status === statusFilter;
     const matchesPriority =
@@ -96,7 +99,7 @@ const Feedback: React.FC = () => {
   if (error) toast.error(error.message);
   if (isLoading) return <LoadingPage />;
   if (error) return <ErrorPage errorMessage={error.message} />;
-  if (feedbacks?.length === 0) return <NoFeedbacks />;
+  if (!selectedSiteId && feedbacks?.length === 0) return <NoFeedbacks />;
 
   return (
     <div className="space-y-6 text-gray-900 dark:text-gray-100 transition-all duration-200">
@@ -119,7 +122,7 @@ const Feedback: React.FC = () => {
         onClearFilters={handleClearFilters}
         sites={sites}
         selectedSiteId={selectedSiteId}
-        selectSiteId={selectSiteId}
+        setSelectedSiteId={setSelectedSiteId}
       />
 
       <div className="space-y-4">
@@ -131,7 +134,7 @@ const Feedback: React.FC = () => {
 
         {filteredFeedback?.map((feedback) => (
           <FeedbackItem
-            key={feedback.id}
+            key={feedback._id}
             feedback={feedback}
             getStatusIcon={getStatusIcon}
             getPriorityColor={getPriorityColor}

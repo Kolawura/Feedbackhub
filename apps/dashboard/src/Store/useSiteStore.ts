@@ -6,7 +6,7 @@ interface SetupState {
   widgetPosition: "bottom-right" | "bottom-left" | "top-right" | "top-left";
   selectSiteId: (siteId: string | null) => void;
   setWidgetPosition: (
-    position: "bottom-right" | "bottom-left" | "top-right" | "top-left"
+    position: "bottom-right" | "bottom-left" | "top-right" | "top-left",
   ) => void;
 }
 
@@ -29,6 +29,6 @@ export const useSiteStore = create<SetupState>()(
         selectedSiteId: state.selectedSiteId,
         widgetPosition: state.widgetPosition,
       }),
-    }
-  )
+    },
+  ),
 );

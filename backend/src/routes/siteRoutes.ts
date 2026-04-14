@@ -9,6 +9,6 @@ import { protect } from "../middleware/authMiddleware.js";
 
 router.get("/all", protect, getSiteIds);
 router.post("/add", protect, addNewSite);
-router.get("/:sideId", validateSiteId);
+router.get("/:siteId", validateSiteId);
 
 export default router;
