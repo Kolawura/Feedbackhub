@@ -59,7 +59,7 @@ const SetupWidget = () => {
   const { sitesQuery, addSiteMutation } = useSites();
 
   const scriptTag = siteId
-    ? `<script src="https://feedbackhub.io/widget.js" data-fhub-id="${siteId}" data-position="${widgetPosition}"></script>`
+    ? `<script src="https://widgetfb.netlify.app/src/main.js" data-fhub-id="${siteId}" data-position="${widgetPosition}"></script>`
     : "";
 
   const generateSite = () => {
@@ -123,7 +123,7 @@ const SetupWidget = () => {
                   | "bottom-right"
                   | "bottom-left"
                   | "top-right"
-                  | "top-left"
+                  | "top-left",
               )
             }
           >
