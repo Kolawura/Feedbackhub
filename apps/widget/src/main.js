@@ -14,7 +14,6 @@ style.textContent = `
     position: fixed;
     bottom: 24px;
     right: 24px;
-    background-color: #2563eb;
     color: white;
     padding: 12px 20px;
     border-radius: 9999px;
@@ -23,11 +22,11 @@ style.textContent = `
     border: none;
     cursor: pointer;
     z-index: 99999;
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
-    transition: background-color 0.2s, transform 0.1s;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    transition: opacity 0.2s, transform 0.1s;
   }
   .feedback-button:hover {
-    background-color: #1d4ed8;
+    opacity: 0.88;
     transform: scale(1.03);
   }
   .feedback-modal-container {
@@ -170,7 +169,24 @@ style.textContent = `
     color: #374151;
     background: #f3f4f6;
   }
-  .feedback-modal .footer-note {
+  .feedback-modal--dark {
+    background-color: #1e1e21;
+    border-color: #2a2a2e;
+    color: #e8e6e0;
+  }
+  .feedback-modal--dark h3 { color: #e8e6e0; }
+  .feedback-modal--dark label { color: #7a7870; }
+  .feedback-modal--dark input,
+  .feedback-modal--dark textarea,
+  .feedback-modal--dark select {
+    background-color: #0e0e0f;
+    border-color: #2a2a2e;
+    color: #e8e6e0;
+  }
+  .feedback-modal--dark .footer-note { color: #3d3d42; }
+  .feedback-modal--dark .footer-note a { color: #f5a623; }
+  .feedback-modal--dark .btn-close { color: #3d3d42; }
+  .feedback-modal--dark .btn-close:hover { color: #7a7870; background:#2a2a2e; }
     margin: 12px 0 0;
     font-size: 12px;
     color: #9ca3af;
@@ -378,25 +394,21 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  async function trackPageVisit(url) {
+  function trackPageVisit(url) {
     const visitorId = getOrCreateVisitorId();
-    console.log(visitorId);
-    try {
-      (await fetch(`${API_BASE}/api/visitor/track-page-visit`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          siteId: SITE_ID,
-          visitorId,
-          sessionStart: getSessionStart(),
-          page: url,
-          timestamp: new Date().toISOString(),
-        }),
+    fetch(`${API_BASE}/api/visitor/track-page-visit`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        siteId: SITE_ID,
+        visitorId,
+        sessionStart: getSessionStart(),
+        page: url,
+        timestamp: new Date().toISOString(),
       }),
-        localStorage.setItem(VISITOR_TRACKED_KEY, "true"));
-    } catch (err) {
-      console.error("FeedbackHub: page visit tracking failed", err);
-    }
+    }).catch((err) =>
+      console.error("FeedbackHub: page visit tracking failed", err),
+    );
   }
 
   function overrideHistoryMethods() {
@@ -417,14 +429,42 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ─── Widget ────────────────────────────────────────────────────────────────
 
-  function setupFeedbackWidget(siteValid) {
+  function setupFeedbackWidget(siteValid, widgetConfig) {
     const visitorId = getOrCreateVisitorId();
+
+    // Apply widget config from server (falls back to defaults)
+    const cfg = {
+      buttonText: widgetConfig?.buttonText || "Feedback",
+      buttonColor: widgetConfig?.buttonColor || "#f5a623",
+      position: widgetConfig?.position || "bottom-right",
+      theme: widgetConfig?.theme || "auto",
+    };
+
+    // Resolve position to CSS
+    const posStyles = {
+      "bottom-right": "bottom:24px;right:24px;",
+      "bottom-left": "bottom:24px;left:24px;",
+      "top-right": "top:24px;right:24px;",
+      "top-left": "top:24px;left:24px;",
+    };
+
+    // Resolve theme
+    const prefersDark = window.matchMedia(
+      "(prefers-color-scheme: dark)",
+    ).matches;
+    const isDark =
+      cfg.theme === "dark" || (cfg.theme === "auto" && prefersDark);
 
     // Floating button
     const button = document.createElement("button");
     button.className = "feedback-button";
-    button.textContent = "Feedback";
+    button.textContent = cfg.buttonText;
     button.setAttribute("aria-label", "Open feedback form");
+    // Apply dynamic color + position via inline style (overrides the CSS class defaults)
+    button.style.cssText = `
+      background-color:${cfg.buttonColor};
+      ${posStyles[cfg.position] || posStyles["bottom-right"]}
+    `;
     document.body.appendChild(button);
 
     // Overlay
@@ -438,6 +478,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Modal card
     const modal = document.createElement("div");
     modal.className = "feedback-modal";
+    if (isDark) modal.classList.add("feedback-modal--dark");
     modalContainer.appendChild(modal);
 
     function openModal() {
@@ -674,6 +715,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ─── Validate site ID once on load, then boot ──────────────────────────────
 
+  // Returns { valid: boolean, widgetConfig: object|null }
   async function validateSite() {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 5000);
@@ -682,18 +724,19 @@ document.addEventListener("DOMContentLoaded", () => {
         signal: controller.signal,
       });
       clearTimeout(timeout);
-      return res.ok;
-    } catch (error) {
+      if (!res.ok) return { valid: false, widgetConfig: null };
+      const data = await res.json();
+      return { valid: true, widgetConfig: data.widgetConfig ?? null };
+    } catch {
       clearTimeout(timeout);
-      console.log("error validating siteID", error);
-      return false;
+      return { valid: false, widgetConfig: null };
     }
   }
 
   (async () => {
-    const siteValid = await validateSite();
+    const { valid, widgetConfig } = await validateSite();
     await trackVisitorSession();
     overrideHistoryMethods();
-    setupFeedbackWidget(siteValid);
+    setupFeedbackWidget(valid, widgetConfig);
   })();
 });
