@@ -16,7 +16,7 @@ dotenv.config();
 
 const app: Application = express();
 
-connectDB();
+await connectDB();
 
 app.use(helmet());
 app.use(
@@ -36,7 +36,7 @@ app.options(/.*/, cors());
 
 app.use(cookieParser());
 app.use(express.json());
-app.use(limiter);
+// app.use(limiter);
 
 // Routes
 app.use("/api/auth", authRoutes);

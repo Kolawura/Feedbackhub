@@ -70,7 +70,6 @@ export const getAdminFeedbacks = async (req: Request, res: Response) => {
       res.status(401).json({ message: "Unauthorized" });
       return;
     }
-    console.log(req.admin);
     const adminId = req.admin._id;
 
     // get all sites owned by this admin
@@ -153,58 +152,113 @@ export const getFeedbackByVisitor = async (req: Request, res: Response) => {
 
 export const getDashboardAnalytics = async (req: Request, res: Response) => {
   try {
-    const { siteId } = req.params;
-    if (!req.user) {
+    if (!req.admin) {
       res.status(401).json({ message: "Unauthorized" });
       return;
     }
+    const { siteId } = req.params;
 
-    const filter: any = { admin: req.user._id };
-    if (siteId) filter.site = siteId;
-
-    const feedbacks = await Feedback.find(filter);
-
-    // 🔹 Generate last 5 months dynamically
-    const now = new Date();
-    const labels: string[] = [];
-    const trend: number[] = [];
-
-    for (let i = 4; i >= 0; i--) {
-      const date = new Date(now.getFullYear(), now.getMonth() - i);
-      const monthLabel = date.toLocaleString("default", { month: "short" }); // e.g. "Aug"
-      labels.push(monthLabel);
-      trend.push(0);
+    // Build the siteId filter correctly
+    let siteIds: string[];
+    if (siteId) {
+      siteIds = [siteId];
+    } else {
+      siteIds = req.admin.AdminSite.map((s) => s.siteId);
     }
 
-    // 🔹 Count feedback per month
-    feedbacks.forEach((fb) => {
-      if (fb.createdAt) {
-        const fbDate = new Date(fb.createdAt);
-        const monthDiff =
-          (now.getFullYear() - fbDate.getFullYear()) * 12 +
-          (now.getMonth() - fbDate.getMonth());
+    if (siteIds.length === 0) {
+      res.json({
+        success: true,
+        data: { labels: [], trend: [0, 0, 0, 0, 0], positive: 0, negative: 0 },
+      });
+      return;
+    }
+    // Build last 5 month labels on the JS side (cheap, no DB needed)
+    const now = new Date();
+    const labels: string[] = [];
+    for (let i = 4; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i);
+      labels.push(d.toLocaleString("default", { month: "short" }));
+    }
 
-        if (monthDiff >= 0 && monthDiff < 5) {
-          const index = 4 - monthDiff; // reverse index to match labels order
-          trend[index]++;
-        }
+    // Single aggregation query does everything in the database
+    const fiveMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 4, 1);
+
+    const [trendResult, sentimentResult] = await Promise.all([
+      // Trend: count feedbacks grouped by month for the last 5 months
+      Feedback.aggregate([
+        {
+          $match: {
+            siteId: { $in: siteIds },
+            createdAt: { $gte: fiveMonthsAgo },
+          },
+        },
+        {
+          $group: {
+            _id: {
+              year: { $year: "$createdAt" },
+              month: { $month: "$createdAt" },
+            },
+            count: { $sum: 1 },
+          },
+        },
+      ]),
+
+      // Sentiment: count positive and negative in one pass
+      Feedback.aggregate([
+        {
+          $match: { siteId: { $in: siteIds } },
+        },
+        {
+          $group: {
+            _id: null,
+            positive: {
+              $sum: {
+                $cond: [
+                  {
+                    $and: [
+                      {
+                        $in: ["$category", ["feature", "improvement", "other"]],
+                      },
+                      { $in: ["$priority", ["medium", "low"]] },
+                    ],
+                  },
+                  1,
+                  0,
+                ],
+              },
+            },
+            negative: {
+              $sum: {
+                $cond: [
+                  {
+                    $and: [
+                      { $eq: ["$category", "bug"] },
+                      { $in: ["$priority", ["critical", "high"]] },
+                    ],
+                  },
+                  1,
+                  0,
+                ],
+              },
+            },
+          },
+        },
+      ]),
+    ]);
+
+    // Map aggregation results back into the 5-slot trend array
+    const trend = [0, 0, 0, 0, 0];
+    trendResult.forEach(({ _id, count }) => {
+      const monthDiff =
+        (now.getFullYear() - _id.year) * 12 + (now.getMonth() + 1 - _id.month);
+      if (monthDiff >= 0 && monthDiff < 5) {
+        trend[4 - monthDiff] = count;
       }
     });
 
-    // 🔹 Positive vs Negative
-    const positive = feedbacks.filter(
-      (fb) =>
-        (fb.category === "feature" ||
-          fb.category === "improvement" ||
-          fb.category === "other") &&
-        (fb.priority === "medium" || fb.priority === "low"),
-    ).length;
-
-    const negative = feedbacks.filter(
-      (fb) =>
-        fb.category === "bug" &&
-        (fb.priority === "critical" || fb.priority === "high"),
-    ).length;
+    const positive = sentimentResult[0]?.positive ?? 0;
+    const negative = sentimentResult[0]?.negative ?? 0;
 
     res.json({ success: true, data: { labels, trend, positive, negative } });
   } catch (err) {

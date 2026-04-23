@@ -12,7 +12,7 @@ declare module "express-serve-static-core" {
 export const protect = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const token = req.cookies.accessToken;
@@ -26,13 +26,11 @@ export const protect = async (
     }
 
     const decoded = jwt.verify(token, secret) as JwtPayload;
-    console.log(decoded);
 
     const admin = (await Admin.findById(decoded.id).select(
-      "-password"
+      "-password",
     )) as AdminDocument;
     req.admin = admin;
-    console.log(admin);
 
     if (!req.admin) {
       res.status(401).json({ message: "Unauthorized: Admin not found" });

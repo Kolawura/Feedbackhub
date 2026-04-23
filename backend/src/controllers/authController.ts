@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import Admin from "../models/adminModels.js";
 import { loginSchema, registerSchema } from "../schema/authSchema.js";
+import bcrypt from "bcryptjs";
+
 const isProduction = process.env.NODE_ENV === "production";
 
 // Generate JWT token
@@ -168,7 +170,6 @@ export const loginAdmin = async (
 };
 
 export const getMe = async (req: Request, res: Response): Promise<void> => {
-  console.log("Fetching admin details");
   try {
     const accessToken = req.cookies.accessToken;
     if (!accessToken) {
@@ -256,7 +257,6 @@ export const refreshAccessToken = async (
       },
     });
   } catch (error) {
-    console.error("Refresh token error:", error);
     res.status(403).json({ success: false, message: "Invalid refresh token" });
   }
 };
@@ -281,4 +281,164 @@ export const logoutAdmin = async (
   });
 
   res.status(200).json({ success: true, message: "Logged out successfully" });
+};
+
+// @desc    Update admin profile (name, username, email, password)
+// @route   PATCH /api/auth/profile
+// @access  Private
+export const updateAdmin = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const adminId = req.admin?._id;
+    if (!adminId) {
+      res.status(401).json({ success: false, message: "Unauthorized" });
+      return;
+    }
+
+    const {
+      firstName,
+      lastName,
+      username,
+      email,
+      currentPassword,
+      newPassword,
+    } = req.body;
+
+    const admin = await Admin.findById(adminId);
+    if (!admin) {
+      res.status(404).json({ success: false, message: "Admin not found" });
+      return;
+    }
+
+    // Password change — verify current password first
+    if (newPassword) {
+      if (!currentPassword) {
+        res.status(400).json({
+          success: false,
+          message: "Current password is required to set a new password",
+        });
+        return;
+      }
+      const isMatch = await admin.matchPassword(currentPassword);
+      if (!isMatch) {
+        res.status(400).json({
+          success: false,
+          message: "Current password is incorrect",
+        });
+        return;
+      }
+      // Use updateOne with a pre-hashed value to bypass the pre-save hook
+      // and avoid double-hashing. The hook only fires on save().
+      const salt = await bcrypt.genSalt(10);
+      const hashed = await bcrypt.hash(newPassword, salt);
+      await Admin.updateOne({ _id: adminId }, { $set: { password: hashed } });
+    }
+
+    // Username uniqueness check
+    if (username && username !== admin.username) {
+      const taken = await Admin.findOne({ username });
+      if (taken) {
+        res
+          .status(400)
+          .json({ success: false, message: "Username already taken" });
+        return;
+      }
+      admin.username = username;
+    }
+
+    // Email uniqueness check
+    if (email && email !== admin.email) {
+      const taken = await Admin.findOne({ email });
+      if (taken) {
+        res
+          .status(400)
+          .json({ success: false, message: "Email already in use" });
+        return;
+      }
+      admin.email = email;
+    }
+
+    if (firstName) admin.firstName = firstName;
+    if (lastName) admin.lastName = lastName;
+
+    // save() only touches non-password fields here
+    await admin.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      data: {
+        _id: admin._id,
+        firstName: admin.firstName,
+        lastName: admin.lastName,
+        username: admin.username,
+        email: admin.email,
+      },
+    });
+  } catch (error) {
+    console.error("Profile update error:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+// @desc    Delete admin account and all associated data
+// @route   DELETE /api/auth/account
+// @access  Private
+export const deleteAdmin = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const adminId = req.admin?._id;
+    if (!adminId) {
+      res.status(401).json({ success: false, message: "Unauthorized" });
+      return;
+    }
+
+    // Import Site and Feedback models inline to avoid circular deps at top level
+    const Site = (await import("../models/siteModels.js")).default;
+    const Feedback = (await import("../models/feedbackModels.js")).default;
+    const Visitor = (await import("../models/visitorModels.js")).default;
+
+    const admin = await Admin.findById(adminId);
+    if (!admin) {
+      res.status(404).json({ success: false, message: "Admin not found" });
+      return;
+    }
+
+    const siteIds = admin.AdminSite.map((s) => s.siteId);
+
+    // Delete all feedback and visitors for this admin's sites
+    await Feedback.deleteMany({ siteId: { $in: siteIds } });
+    await Visitor.deleteMany({ siteId: { $in: siteIds } });
+
+    // Delete site documents
+    await Site.deleteMany({ siteId: { $in: siteIds } });
+
+    // Delete the admin
+    await Admin.findByIdAndDelete(adminId);
+
+    // Clear auth cookies
+    const isProduction = process.env.NODE_ENV === "production";
+    res.clearCookie("accessToken", {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
+    });
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Account and all associated data deleted",
+    });
+  } catch (error) {
+    console.error("Account deletion error:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
 };

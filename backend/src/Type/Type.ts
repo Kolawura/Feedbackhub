@@ -1,12 +1,21 @@
+export interface WidgetConfig {
+  buttonText: string;
+  buttonColor: string;
+  position: "bottom-right" | "bottom-left" | "top-right" | "top-left";
+  theme: "light" | "dark" | "auto";
+}
+
 export interface ISite extends Document {
   name: string;
   siteId: string;
+  widgetConfig?: WidgetConfig;
   createdAt: Date;
   updatedAt: Date;
 }
 export interface Site {
   name: string;
   siteId: string;
+  widgetConfig?: WidgetConfig;
 }
 export interface IAdmin extends Document {
   _id: string;
@@ -98,4 +107,5 @@ export interface VisitorData {
   country?: string;
   region?: string;
   city?: string;
+  pagesVisited: IPageVisit[];
 }

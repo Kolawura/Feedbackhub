@@ -12,6 +12,7 @@ router.post("/track", trackVisitor);
 
 router.post("/track-page-visit", appendPageVisit);
 
+router.get("/analytics", protect, getAnalytics);
 router.get("/analytics/:siteId", protect, getAnalytics);
 
 export default router;
