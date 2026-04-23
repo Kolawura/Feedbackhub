@@ -1,144 +1,99 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { Sun, Moon } from "lucide-react";
-import { useThemeStore } from "../../Store/useThemeStore";
+import { Link, useNavigate } from "react-router-dom";
+import { Menu, X } from "lucide-react";
 import { useAuth } from "../../Hooks/useAuth";
 
 const HomeNavbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { theme, toggleTheme } = useThemeStore();
   const { user } = useAuth();
-
-  const toggleMenu = () => setIsOpen(!isOpen);
+  const navigate = useNavigate();
 
   return (
-    <nav className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm">
-      <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-[var(--bg)]/90 backdrop-blur-md border-b border-[var(--border)]">
+      <div className="max-w-6xl mx-auto px-4 md:px-6 py-4 flex items-center justify-between">
         <Link
           to="/"
-          className="text-xl font-bold text-gray-900 dark:text-white"
+          className="font-mono text-xs text-[var(--amber)] tracking-[0.3em] uppercase font-bold"
         >
-          FeedbackHub
+          ◆ FeedbackHub
         </Link>
-        <div className="hidden md:flex items-center space-x-6">
-          {user && (
-            <Link
-              to="/dashboard"
-              className="text-sm font-medium text-gray-700 dark:text-gray-200 hover:underline hover:decoration-blue-500 px-4 py-2 rounded-md transition"
-            >
-              Dashboard
-            </Link>
+        <div className="hidden md:flex items-center gap-1">
+          {user ? (
+            <>
+              <Link
+                to="/dashboard"
+                className="font-mono text-xs text-[var(--text-muted)] hover:text-[var(--text)] px-3 py-2 transition-colors uppercase tracking-widest"
+              >
+                Dashboard
+              </Link>
+              <Link
+                to="/setup"
+                className="font-mono text-xs text-[var(--text-muted)] hover:text-[var(--text)] px-3 py-2 transition-colors uppercase tracking-widest"
+              >
+                Setup
+              </Link>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={() => navigate("/login")}
+                className="font-mono text-xs text-[var(--text-muted)] hover:text-[var(--text)] px-3 py-2 transition-colors uppercase tracking-widest"
+              >
+                Sign in
+              </button>
+              <button
+                onClick={() => navigate("/register")}
+                className="font-mono text-xs bg-[var(--amber)] text-[#0e0e0f] font-medium px-4 py-2 hover:opacity-90 transition-opacity uppercase tracking-widest"
+              >
+                Get started
+              </button>
+            </>
           )}
-          {user && (
-            <Link
-              to="/setup"
-              className="text-sm font-medium text-gray-700 dark:text-gray-200 hover:underline hover:decoration-blue-500 px-4 py-2 rounded-md transition"
-            >
-              Setup
-            </Link>
-          )}
-          <Link
-            to="/login"
-            className="text-sm font-medium text-gray-700 dark:text-gray-200 hover:underline px-4 py-2 rounded-md transition"
-          >
-            Login
-          </Link>
-          <Link
-            to="/register"
-            className="text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-md transition"
-          >
-            Register
-          </Link>
-          <button
-            onClick={toggleTheme}
-            className="text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-white"
-            aria-label="Toggle dark mode"
-          >
-            {theme === "dark" ? (
-              <Sun
-                size={25}
-                className="w-10 h-10 p-2 rounded-full border border-gray-300 dark:border-white/3 hover:bg-gray-100 dark:hover:bg-white/3"
-              />
-            ) : (
-              <Moon
-                size={25}
-                className="w-10 h-10 p-2 rounded-full border border-gray-300 dark:border-white/3 hover:bg-gray-100 dark:hover:bg-white/3"
-              />
-            )}
-          </button>
         </div>
         <button
-          onClick={toggleMenu}
-          className="md:hidden text-gray-600 dark:text-gray-300 focus:outline-none"
+          onClick={() => setIsOpen(!isOpen)}
+          className="md:hidden text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
         >
-          <svg
-            className="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            {isOpen ? (
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            ) : (
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 6h16M4 12h16M4 18h16"
-              />
-            )}
-          </svg>
+          {isOpen ? <X size={18} /> : <Menu size={18} />}
         </button>
       </div>
       {isOpen && (
-        <div className="md:hidden px-6 pb-4 space-y-2">
-          {user && (
-            <Link
-              to="/dashboard"
-              className="block text-sm text-gray-700 dark:text-gray-200"
-            >
-              Dashboard
-            </Link>
+        <div className="md:hidden border-t border-[var(--border)] bg-[var(--bg)] px-4 py-4 space-y-1">
+          {user ? (
+            <>
+              <Link
+                to="/dashboard"
+                onClick={() => setIsOpen(false)}
+                className="block font-mono text-xs text-[var(--text-muted)] hover:text-[var(--text)] py-2 uppercase tracking-widest"
+              >
+                Dashboard
+              </Link>
+              <Link
+                to="/setup"
+                onClick={() => setIsOpen(false)}
+                className="block font-mono text-xs text-[var(--text-muted)] hover:text-[var(--text)] py-2 uppercase tracking-widest"
+              >
+                Setup
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                onClick={() => setIsOpen(false)}
+                className="block font-mono text-xs text-[var(--text-muted)] hover:text-[var(--text)] py-2 uppercase tracking-widest"
+              >
+                Sign in
+              </Link>
+              <Link
+                to="/register"
+                onClick={() => setIsOpen(false)}
+                className="block font-mono text-xs text-[var(--amber)] py-2 uppercase tracking-widest"
+              >
+                Get started →
+              </Link>
+            </>
           )}
-          {user && (
-            <Link
-              to="/setup"
-              className="block text-sm text-gray-700 dark:text-gray-200"
-            >
-              Setup
-            </Link>
-          )}
-          <Link
-            to="/login"
-            className="block text-sm text-gray-700 dark:text-gray-200"
-          >
-            Login
-          </Link>
-          <Link
-            to="/register"
-            className="block text-sm text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-md"
-          >
-            Register
-          </Link>
-          <button
-            onClick={toggleTheme}
-            className="text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-white"
-          >
-            {theme === "dark" ? (
-              <span className="flex items-center gap-2">
-                <Sun size={16} /> Light Mode
-              </span>
-            ) : (
-              <span className="flex items-center gap-2">
-                <Moon size={16} /> Dark Mode
-              </span>
-            )}
-          </button>
         </div>
       )}
     </nav>

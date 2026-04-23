@@ -53,30 +53,30 @@ export const FeedbackItem: React.FC<{
                 ))}
               </div>
 
-              <div className="flex items-center justify-between pt-2">
-                <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                  <span>
+              <div className="flex items-center justify-between  pt-2">
+                <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                  <span className="text-xs">
                     Created: {new Date(feedback.createdAt).toLocaleDateString()}
                   </span>
-                  <span>
+                  <span className="text-xs">
                     Updated: {new Date(feedback.updatedAt).toLocaleDateString()}
                   </span>
                   <div className="flex items-center space-x-1">
-                    <ThumbsUp className="h-4 w-4" />
+                    <ThumbsUp className="h-3 md:h-4 w-3 md:w-4" />
                     <span>{feedback.votes}</span>
                   </div>
                 </div>
                 <div className="flex space-x-2">
-                  <Button
+                  {/* <Button
                     variant="outline"
-                    className="text-sm border-gray-300 dark:border-gray-700 dark:hover:bg-gray-950 bg-gray-50 dark:bg-gray-900"
+                    className="text-xs md:text-sm px-2 border-gray-300 dark:border-gray-700 dark:hover:bg-gray-950 bg-gray-50 dark:bg-gray-900"
                   >
                     <MessageSquare className="h-4 w-4 mr-2" />
                     Reply
-                  </Button>
+                  </Button> */}
                   <Button
                     variant="outline"
-                    className="text-sm border-gray-300 dark:border-gray-700 dark:hover:bg-gray-950 bg-gray-50 dark:bg-gray-900"
+                    className="text-xs md:text-sm border-gray-300 dark:border-gray-700 dark:hover:bg-gray-950 bg-gray-50 dark:bg-gray-900"
                   >
                     Update Status
                   </Button>

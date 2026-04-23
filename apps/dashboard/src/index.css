@@ -1,5 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap")
-layer(base);
+@import url("https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Syne:wght@400;500;600;700;800&display=swap");
 
 @import "tailwindcss";
 
@@ -7,7 +6,169 @@ layer(base);
 
 @theme {
   --font-*: initial;
-  --font-outfit: Outfit, sans-serif;
+  --font-mono: "DM Mono", monospace;
+  --font-serif: "Lora", serif;
+  --font-display: "Syne", sans-serif;
+  --color-amber: #f5a623;
+  --color-amber-hover: #f5b640;
+  --color-red: #e05252;
+  --color-green: #52a86e;
+  --color-blue: #5281e0;
 }
 
-@custom-variant dark (&:where(.dark, .dark *));
+/* ─── Light mode (default) ───────────────────────────────────── */
+:root {
+  --bg: #f7f6f2;
+  --bg-surface: #ffffff;
+  --bg-surface-2: #f0efe9;
+  --bg-hover: #eae9e3;
+  --border: #dddbd3;
+  --border-light: #e8e7e0;
+  --text: #1a1a1b;
+  --text-muted: #6b6a63;
+  --text-dim: #a8a79f;
+  --amber: #d4880a;
+  --amber-bg: rgba(212, 136, 10, 0.08);
+  --amber-border: rgba(212, 136, 10, 0.25);
+  --red: #c43b3b;
+  --red-bg: rgba(196, 59, 59, 0.08);
+  --green: #3a8a55;
+  --green-bg: rgba(58, 138, 85, 0.08);
+  --blue: #3a65c4;
+  --blue-bg: rgba(58, 101, 196, 0.08);
+  --scrollbar-bg: #f0efe9;
+  --scrollbar-thumb: #dddbd3;
+}
+
+/* ─── Dark mode ──────────────────────────────────────────────── */
+.dark {
+  --bg: #0e0e0f;
+  --bg-surface: #161618;
+  --bg-surface-2: #1e1e21;
+  --bg-hover: #1e1e21;
+  --border: #2a2a2e;
+  --border-light: #323237;
+  --text: #e8e6e0;
+  --text-muted: #7a7870;
+  --text-dim: #3d3d42;
+  --amber: #f5a623;
+  --amber-bg: rgba(245, 166, 35, 0.08);
+  --amber-border: rgba(245, 166, 35, 0.25);
+  --red: #e05252;
+  --red-bg: rgba(224, 82, 82, 0.08);
+  --green: #52a86e;
+  --green-bg: rgba(82, 168, 110, 0.08);
+  --blue: #5281e0;
+  --blue-bg: rgba(82, 129, 224, 0.08);
+  --scrollbar-bg: #0e0e0f;
+  --scrollbar-thumb: #2a2a2e;
+}
+
+* {
+  box-sizing: border-box;
+}
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: "Lora", serif;
+  -webkit-font-smoothing: antialiased;
+  transition:
+    background-color 0.2s,
+    color 0.2s;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.022;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-size: 128px 128px;
+}
+
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--amber);
+}
+
+*:focus-visible {
+  outline: 1px solid var(--amber);
+  outline-offset: 2px;
+}
+::selection {
+  background: rgba(245, 166, 35, 0.2);
+  color: var(--amber);
+}
+
+@keyframes amber-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.5s ease forwards;
+}
+.animate-fade-in {
+  animation: fade-in 0.4s ease forwards;
+}
+.animate-amber-pulse {
+  animation: amber-pulse 2s ease-in-out infinite;
+}
+
+.stagger-1 {
+  animation-delay: 0.05s;
+}
+.stagger-2 {
+  animation-delay: 0.1s;
+}
+.stagger-3 {
+  animation-delay: 0.15s;
+}
+.stagger-4 {
+  animation-delay: 0.2s;
+}
+.stagger-5 {
+  animation-delay: 0.25s;
+}
+.stagger-6 {
+  animation-delay: 0.3s;
+}

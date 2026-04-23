@@ -1,149 +1,234 @@
-"use client";
-import type React from "react";
-import { useEffect, useState } from "react";
-import { AlertCircle, CheckCircle, Clock } from "lucide-react";
-import { FilterControls } from "../Components/Feedbacks/FilterControls";
-import { FeedbackItem } from "../Components/Feedbacks/FeedbackItem";
+import { motion } from "framer-motion";
+import { Search, X, SlidersHorizontal, ArrowUpRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Feedback } from "../Type";
 import LoadingPage from "./LoadingPage";
-import toast from "react-hot-toast";
 import ErrorPage from "./ErrorPage";
-import { useSiteStore } from "../Store/useSiteStore";
-import { useFeedbacks } from "../Hooks/useFeedback";
-import { useSites } from "../Hooks/useSite";
-import NoFeedbacks from "../Components/Feedbacks/NoFeedbacks";
+import toast from "react-hot-toast";
+import { useFilter } from "../Hooks/useFilter";
+import {
+  categoryDot,
+  categoryStyle,
+  priorityStyle,
+  selectClass,
+} from "../Components/ui/styles";
 
-const Feedback: React.FC = () => {
-  const { selectedSiteId, selectSiteId } = useSiteStore();
-  const setSelectedSiteId = (value: string) => {
-    selectSiteId(value === "all" ? null : value);
-  };
+const FeedbackPage = () => {
+  const navigate = useNavigate();
   const {
-    data: feedbacks,
+    filtered,
+    hasFilters,
     isLoading,
     error,
-  } = useFeedbacks(selectedSiteId ?? undefined);
-  const { data: sites } = useSites().sitesQuery;
+    setSearchTerm,
+    setPriority,
+    setCategory,
+    showFilters,
+    setShowFilters,
+    sites,
+    selectSiteId,
+    selectedSiteId,
+    searchTerm,
+    priorityFilter,
+    categoryFilter,
+  } = useFilter();
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [priorityFilter, setPriorityFilter] = useState("all");
-  const [categoryFilter, setCategoryFilter] = useState("all");
-
-  const filteredFeedback = feedbacks?.filter((feedback) => {
-    const matchesSearch =
-      feedback.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      feedback.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      feedback.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus =
-      statusFilter === "all" || feedback.status === statusFilter;
-    const matchesPriority =
-      priorityFilter === "all" || feedback.priority === priorityFilter;
-    const matchesCategory =
-      categoryFilter === "all" || feedback.category === categoryFilter;
-
-    return matchesSearch && matchesStatus && matchesPriority && matchesCategory;
-  });
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case "critical":
-        return "destructive";
-      case "high":
-        return "destructive";
-      case "medium":
-        return "default";
-      case "low":
-        return "secondary";
-      default:
-        return "default";
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "open":
-        return <AlertCircle className="h-4 w-4 text-orange-500" />;
-      case "in-progress":
-        return <Clock className="h-4 w-4 text-blue-500" />;
-      case "resolved":
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case "closed":
-        return <CheckCircle className="h-4 w-4 text-gray-500" />;
-      default:
-        return <AlertCircle className="h-4 w-4" />;
-    }
-  };
-
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case "bug":
-        return "destructive";
-      case "feature":
-        return "default";
-      case "improvement":
-        return "secondary";
-      case "other":
-        return "outline";
-      default:
-        return "default";
-    }
-  };
-
-  const handleClearFilters = () => {
-    setSearchTerm("");
-    setStatusFilter("all");
-    setPriorityFilter("all");
-    setCategoryFilter("all");
-    selectSiteId(null);
-  };
   if (error) toast.error(error.message);
   if (isLoading) return <LoadingPage />;
   if (error) return <ErrorPage errorMessage={error.message} />;
-  if (!selectedSiteId && feedbacks?.length === 0) return <NoFeedbacks />;
 
   return (
-    <div className="space-y-6 text-gray-900 dark:text-gray-100 transition-all duration-200">
-      <div>
-        <h1 className="text-3xl font-bold">Feedback Management</h1>
-        <p className="text-muted-foreground">
-          View and manage all feedback submissions
+    <div className="min-h-screen p-4 md:p-6 space-y-5 md:space-y-6">
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        <p className="font-mono text-xs text-[var(--amber)] tracking-[0.3em] uppercase mb-1">
+          Inbox
         </p>
-      </div>
+        <div className="flex items-end justify-between">
+          <h1 className="font-display text-2xl md:text-3xl font-bold text-[var(--text)]">
+            Feedback
+          </h1>
+          <span className="font-mono text-xs text-[var(--text-dim)]">
+            {filtered?.length ?? 0} items
+          </span>
+        </div>
+      </motion.div>
 
-      <FilterControls
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        statusFilter={statusFilter}
-        setStatusFilter={setStatusFilter}
-        priorityFilter={priorityFilter}
-        setPriorityFilter={setPriorityFilter}
-        categoryFilter={categoryFilter}
-        setCategoryFilter={setCategoryFilter}
-        onClearFilters={handleClearFilters}
-        sites={sites}
-        selectedSiteId={selectedSiteId}
-        setSelectedSiteId={setSelectedSiteId}
-      />
-
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold">
-            {filteredFeedback?.length} feedback items
-          </h2>
+      {/* Filter bar */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.1 }}
+        className="space-y-3"
+      >
+        <div className="flex items-center gap-2">
+          <div className="flex-1 flex items-center gap-2 border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-2">
+            <Search
+              size={12}
+              className="text-[var(--text-dim)] flex-shrink-0"
+            />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search feedback..."
+              className="flex-1 bg-transparent font-mono text-xs text-[var(--text)] placeholder:text-[var(--text-dim)] focus:outline-none min-w-0"
+            />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm("")}
+                className="text-[var(--text-dim)] hover:text-[var(--text-muted)]"
+              >
+                <X size={12} />
+              </button>
+            )}
+          </div>
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className={`flex items-center gap-1.5 px-3 py-2 border font-mono text-xs transition-colors flex-shrink-0 ${
+              showFilters
+                ? "border-[var(--amber)] text-[var(--amber)] bg-[var(--amber-bg)]"
+                : "border-[var(--border)] text-[var(--text-muted)] hover:border-[var(--border-light)]"
+            }`}
+          >
+            <SlidersHorizontal size={12} />
+            <span className="hidden sm:inline">Filters</span>
+            {hasFilters && (
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--amber)]" />
+            )}
+          </button>
         </div>
 
-        {filteredFeedback?.map((feedback) => (
-          <FeedbackItem
-            key={feedback._id}
-            feedback={feedback}
-            getStatusIcon={getStatusIcon}
-            getPriorityColor={getPriorityColor}
-            getCategoryColor={getCategoryColor}
-          />
-        ))}
+        {showFilters && (
+          <div className="flex flex-wrap gap-2">
+            <select
+              value={selectedSiteId ?? "all"}
+              onChange={(e) =>
+                selectSiteId(e.target.value === "all" ? null : e.target.value)
+              }
+              className={selectClass}
+            >
+              <option value="all">All sites</option>
+              {sites?.map((s) => (
+                <option key={s.siteId} value={s.siteId}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategory(e.target.value)}
+              className={selectClass}
+            >
+              <option value="all">All categories</option>
+              <option value="bug">Bug</option>
+              <option value="feature">Feature</option>
+              <option value="improvement">Improvement</option>
+              <option value="other">Other</option>
+            </select>
+            <select
+              value={priorityFilter}
+              onChange={(e) => setPriority(e.target.value)}
+              className={selectClass}
+            >
+              <option value="all">All priorities</option>
+              <option value="critical">Critical</option>
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
+            </select>
+            {hasFilters && (
+              <button
+                onClick={() => {
+                  setSearchTerm("");
+                  setPriority("all");
+                  setCategory("all");
+                  selectSiteId(null);
+                }}
+                className="font-mono text-xs text-[var(--red)] hover:opacity-70 px-2 transition-opacity"
+              >
+                Clear all
+              </button>
+            )}
+          </div>
+        )}
+      </motion.div>
+
+      {/* List */}
+      <div className="border border-[var(--border)] bg-[var(--bg-surface)] divide-y divide-[var(--border)]">
+        {filtered?.length === 0 ? (
+          <div className="py-20 text-center">
+            <p className="font-mono text-xs text-[var(--text-dim)] uppercase tracking-widest">
+              No results
+            </p>
+          </div>
+        ) : (
+          filtered?.map((fb: Feedback, i) => (
+            <motion.div
+              key={fb._id}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: i * 0.025 }}
+              onClick={() => navigate(`/feedback/${fb._id}`)}
+              className="p-3 md:p-5 hover:bg-[var(--bg-hover)] transition-colors cursor-pointer group"
+            >
+              <div className="flex items-start gap-3">
+                <div
+                  className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${categoryDot[fb.category] ?? "bg-[var(--text-dim)]"}`}
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2 mb-1">
+                    <h3 className="font-mono text-sm text-[var(--text)] group-hover:text-[var(--amber)] transition-colors truncate">
+                      {fb.title}
+                    </h3>
+                    <span className="font-mono text-xs text-[var(--text-dim)] flex-shrink-0 hidden sm:block">
+                      {new Date(fb.createdAt).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </span>
+                  </div>
+                  <p className="text-xs text-[var(--text-muted)] mb-2 line-clamp-1">
+                    {fb.description}
+                  </p>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-mono text-xs text-[var(--text-dim)]">
+                      {fb.name || "Anonymous"}
+                    </span>
+                    {fb.userInfo?.location && (
+                      <span className="font-mono text-xs text-[var(--text-dim)] hidden md:inline">
+                        · {fb.userInfo.location}
+                      </span>
+                    )}
+                    <div className="flex items-center gap-1.5 ml-auto">
+                      <span
+                        className={`font-mono text-xs px-2 py-0.5 border ${categoryStyle[fb.category] ?? categoryStyle.other}`}
+                      >
+                        {fb.category}
+                      </span>
+                      <span
+                        className={`font-mono text-xs px-2 py-0.5 border ${priorityStyle[fb.priority] ?? priorityStyle.low}`}
+                      >
+                        {fb.priority}
+                      </span>
+                      <ArrowUpRight
+                        size={12}
+                        className="text-[var(--text-dim)] group-hover:text-[var(--amber)] transition-colors"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          ))
+        )}
       </div>
     </div>
   );
 };
 
-export default Feedback;
+export default FeedbackPage;

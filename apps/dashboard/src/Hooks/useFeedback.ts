@@ -1,7 +1,6 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { api } from "../lib/axios";
 import { Feedback } from "../Type";
-import toast from "react-hot-toast";
 
 export const useFeedbacks = (siteId?: string, visitorId?: string) => {
   const key = siteId

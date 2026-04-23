@@ -1,23 +1,20 @@
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { AlertTriangle } from "lucide-react";
 
 export default function FeedbackNotFound() {
+  const navigate = useNavigate();
   return (
-    <div className="flex flex-col items-center justify-center h-[80vh] text-center px-4 border rounded-lg border-gray-200 dark:border-gray-800">
-      <AlertTriangle className="h-16 w-16 text-red-600 mb-4" />
-      <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">
-        Feedback Not Found
-      </h2>
-      <p className="text-gray-600 dark:text-gray-300 mb-6">
-        We couldn't find the feedback you're looking for. It might have been
-        removed or the link is incorrect.
+    <div className="min-h-screen bg-[var(--bg)] flex flex-col items-center justify-center gap-4 p-6">
+      <AlertTriangle size={24} className="text-[var(--amber)]" />
+      <p className="font-mono text-xs text-[var(--text-dim)] uppercase tracking-widest">
+        Feedback not found
       </p>
-      <Link
-        to="/feedbacks"
-        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+      <button
+        onClick={() => navigate("/feedbacks")}
+        className="font-mono text-xs text-[var(--amber)] hover:opacity-70 transition-opacity"
       >
-        Back to Feedback List
-      </Link>
+        ← Back to feedbacks
+      </button>
     </div>
   );
 }

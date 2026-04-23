@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../lib/axios";
 import toast from "react-hot-toast";
-import { Site } from "../Type";
+import { Site, WidgetConfig } from "../Type";
 
 export const useSites = () => {
   const queryClient = useQueryClient();
@@ -20,7 +20,7 @@ export const useSites = () => {
       const res = await api.post(
         "/api/site/add",
         { name },
-        { withCredentials: true }
+        { withCredentials: true },
       );
       return res.data;
     },
@@ -33,5 +33,58 @@ export const useSites = () => {
     onError: () => toast.error("Failed to create site"),
   });
 
-  return { sitesQuery, addSiteMutation };
+  const renameSiteMutation = useMutation({
+    mutationFn: async ({ siteId, name }: { siteId: string; name: string }) => {
+      const res = await api.patch(
+        `/api/site/rename/${siteId}`,
+        { name },
+        { withCredentials: true },
+      );
+      return res.data;
+    },
+    onSuccess: () => {
+      toast.success("Site renamed");
+      queryClient.invalidateQueries({ queryKey: ["sites"] });
+    },
+    onError: () => toast.error("Failed to rename site"),
+  });
+
+  const updateConfigMutation = useMutation({
+    mutationFn: async ({
+      siteId,
+      config,
+    }: {
+      siteId: string;
+      config: WidgetConfig;
+    }) => {
+      const res = await api.patch(`/api/site/config/${siteId}`, config);
+      return res.data;
+    },
+    onSuccess: () => {
+      toast.success("Widget config saved");
+      queryClient.invalidateQueries({ queryKey: ["sites"] });
+    },
+    onError: () => toast.error("Failed to save widget config"),
+  });
+
+  const deleteSiteMutation = useMutation({
+    mutationFn: async (siteId: string) => {
+      const res = await api.delete(`/api/site/${siteId}`);
+      return res.data;
+    },
+    onSuccess: () => {
+      toast.success("Site deleted");
+      queryClient.invalidateQueries({ queryKey: ["sites"] });
+      queryClient.invalidateQueries({ queryKey: ["feedbacks"] });
+    },
+    onError: () => toast.error("Failed to delete site"),
+  });
+
+  return {
+    sitesQuery,
+    addSiteMutation,
+    renameSiteMutation,
+    updateConfigMutation,
+    deleteSiteMutation,
+  };
 };

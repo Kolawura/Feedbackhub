@@ -18,6 +18,7 @@ import { useThemeStore } from "./Store/useThemeStore";
 import ErrorPage from "./Pages/ErrorPage";
 import { useAuth } from "./Hooks/useAuth";
 import NotFoundPage from "./Pages/NotFoundPage";
+import { Settings } from "./Pages/Settings";
 
 const App = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -36,12 +37,6 @@ const App = () => {
       document.documentElement.classList.remove("dark");
     }
   }, [theme]);
-
-  // // useEffect(() => {
-  //   setTimeout(() => {
-  //   }, 2000);
-  //   // return
-  // }, [error]);
 
   const handleMouseEnter = () => {
     if (timeoutRef.current) {
@@ -92,7 +87,7 @@ const App = () => {
             <Route path="/feedbacks" element={<Feedback />} />
             <Route path="/feedback/:id" element={<FeedbackDetail />} />
             <Route path="/analytics" element={<Analytics />} />
-            <Route path="/settings" element={<div>Settings Page</div>} />
+            <Route path="/settings" element={<Settings />} />
           </Route>
         </Route>
       </Routes>

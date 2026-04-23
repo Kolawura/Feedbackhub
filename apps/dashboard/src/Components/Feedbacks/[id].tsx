@@ -1,108 +1,194 @@
-import { useParams } from "react-router-dom";
-import FeedbackNotFound from "./FeedBackNotFound";
-import { Feedback } from "../../Type";
+import { useParams, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import {
+  ArrowLeft,
+  Monitor,
+  Globe,
+  MapPin,
+  Mail,
+  Clock,
+  Tag,
+  AlertTriangle,
+  Cpu,
+} from "lucide-react";
+import { useFeedbacks } from "../../Hooks/useFeedback";
 import LoadingPage from "../../Pages/LoadingPage";
 import ErrorPage from "../../Pages/ErrorPage";
-import { useFeedbacks } from "../../Hooks/useFeedback";
+import FeedbackNotFound from "./FeedBackNotFound";
+import { MetaRow } from "./MetaRow";
+import { Chip } from "../../utils/chip";
+import { parseBrowser } from "../../utils/parseBrowser";
+import { categoryStyle, priorityStyle } from "../ui/styles";
 
 export default function FeedbackDetail() {
-  const { data: feedbacks, isLoading: loading, error } = useFeedbacks();
   const { id } = useParams();
-  const feedback: Feedback | undefined = feedbacks?.find((f) => f._id === id);
+  const navigate = useNavigate();
+  const { data: feedbacks, isLoading, error } = useFeedbacks();
+  const feedback = feedbacks?.find((f) => f._id === id);
 
-  if (loading) return <LoadingPage />;
+  if (isLoading) return <LoadingPage />;
   if (error) return <ErrorPage errorMessage={error.message} />;
   if (!feedback) return <FeedbackNotFound />;
 
   return (
-    <div className="bg-white dark:bg-white/3 shadow-md rounded-xl p-6 border border-gray-300 dark:border-gray-700">
-      {/* Title */}
-      <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-        {feedback.title}
-      </h2>
+    <div className="min-h-screen bg-[var(--bg)] text-[var(--text)] font-serif p-4 md:p-6">
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+        className="max-w-4xl mx-auto space-y-4 md:space-y-6"
+      >
+        {/* Back button */}
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2 font-mono text-xs text-[var(--text-dim)] hover:text-[var(--amber)] transition-colors uppercase tracking-widest"
+        >
+          <ArrowLeft size={12} /> Back
+        </button>
 
-      {/* Sender Info */}
-      <div className="flex items-center gap-3 mb-4">
-        {/* {feedback.sender.avatar && (
-          <img
-            src={feedback.sender.avatar}
-            alt={feedback.sender.name}
-            className="w-10 h-10 rounded-full border border-gray-300 dark:border-gray-600"
-          />
-        )} */}
-        <div>
-          <p className="text-gray-900 dark:text-white font-semibold">
-            {feedback.name}
-          </p>
-          <p className="text-gray-600 dark:text-gray-400 text-sm">
-            {feedback.userInfo.email}
-          </p>
-        </div>
-      </div>
+        {/* Title card */}
+        <div className="border border-[var(--border)] bg-[var(--bg-surface)] p-5 md:p-6">
+          <div className="flex items-start justify-between gap-4 flex-wrap mb-4">
+            <div className="flex items-center gap-2 flex-wrap">
+              <Chip
+                label={feedback.category}
+                cls={categoryStyle[feedback.category] ?? categoryStyle.other}
+              />
+              <Chip
+                label={feedback.priority}
+                cls={priorityStyle[feedback.priority] ?? priorityStyle.low}
+              />
+              {feedback.status && (
+                <Chip
+                  label={feedback.status}
+                  cls="text-[var(--text-muted)] bg-[var(--bg-hover)] border-[var(--border)]"
+                />
+              )}
+            </div>
+            <span className="font-mono text-xs text-[var(--text-dim)]">
+              {new Date(feedback.createdAt).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </span>
+          </div>
 
-      {/* Feedback Description */}
-      <p className="text-gray-700 dark:text-gray-300 mb-6">
-        {feedback.description}
-      </p>
+          <h1 className="font-display text-xl md:text-2xl lg:text-3xl font-bold text-[var(--text)] mb-3 leading-tight">
+            {feedback.title}
+          </h1>
+          <p className="text-[var(--text-muted)] leading-relaxed text-sm md:text-base">
+            {feedback.description}
+          </p>
+        </div>
 
-      {/* Meta Info Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
-        <div>
-          <p className="text-gray-500 dark:text-gray-400 text-sm">Category</p>
-          <p className="text-gray-900 dark:text-white font-medium">
-            {feedback.category}
-          </p>
+        {/* Two-column info cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Submitter */}
+          <div className="border border-[var(--border)] bg-[var(--bg-surface)] p-5">
+            <p className="font-mono text-xs text-[var(--text-dim)] uppercase tracking-widest mb-4">
+              Submitted by
+            </p>
+            <div className="flex items-center gap-3 mb-4 pb-4 border-b border-[var(--border)]">
+              <div className="w-9 h-9 bg-[var(--amber-bg)] border border-[var(--amber-border)] flex items-center justify-center flex-shrink-0">
+                <span className="font-mono text-xs font-bold text-[var(--amber)]">
+                  {(feedback.name || "A").charAt(0).toUpperCase()}
+                </span>
+              </div>
+              <div className="min-w-0">
+                <p className="font-mono text-sm text-[var(--text)] truncate">
+                  {feedback.name || "Anonymous"}
+                </p>
+                {feedback.userInfo?.email && (
+                  <p className="font-mono text-xs text-[var(--text-dim)] truncate">
+                    {feedback.userInfo.email}
+                  </p>
+                )}
+              </div>
+            </div>
+            <MetaRow
+              icon={<Mail size={12} />}
+              label="Email"
+              value={feedback.userInfo?.email}
+            />
+            <MetaRow
+              icon={<MapPin size={12} />}
+              label="Location"
+              value={feedback.userInfo?.location}
+            />
+            <MetaRow
+              icon={<Clock size={12} />}
+              label="Submitted"
+              value={new Date(feedback.createdAt).toLocaleString()}
+            />
+          </div>
+
+          {/* Device & session */}
+          <div className="border border-[var(--border)] bg-[var(--bg-surface)] p-5">
+            <p className="font-mono text-xs text-[var(--text-dim)] uppercase tracking-widest mb-4">
+              Device & session
+            </p>
+            <MetaRow
+              icon={<Monitor size={12} />}
+              label="Browser"
+              value={parseBrowser(feedback.userInfo?.browser)}
+            />
+            <MetaRow
+              icon={<Cpu size={12} />}
+              label="OS / Platform"
+              value={feedback.userInfo?.os}
+            />
+            <MetaRow
+              icon={<Globe size={12} />}
+              label="IP address"
+              value={feedback.userInfo?.ip}
+            />
+            <MetaRow
+              icon={<Tag size={12} />}
+              label="Site ID"
+              value={feedback.siteId}
+            />
+            <MetaRow
+              icon={<Tag size={12} />}
+              label="Visitor ID"
+              value={feedback.visitorId}
+            />
+          </div>
         </div>
-        <div>
-          <p className="text-gray-500 dark:text-gray-400 text-sm">Priority</p>
-          <p className="text-gray-900 dark:text-white font-medium capitalize">
-            {feedback.priority}
-          </p>
-        </div>
-        <div>
-          <p className="text-gray-500 dark:text-gray-400 text-sm">Status</p>
-          <p className="text-gray-900 dark:text-white font-medium capitalize">
-            {feedback.status ? feedback.status : "open"}
-          </p>
-        </div>
-        <div>
-          <p className="text-gray-500 dark:text-gray-400 text-sm">Votes</p>
-          <p className="text-gray-900 dark:text-white font-medium">
-            {feedback.votes ? feedback.votes : 0}
-          </p>
-        </div>
-        <div>
-          <p className="text-gray-500 dark:text-gray-400 text-sm">Created</p>
-          <p className="text-gray-900 dark:text-white font-medium">
-            {new Date(feedback.createdAt).toLocaleString()}
-          </p>
-        </div>
-        {feedback.updatedAt && feedback.updatedAt !== feedback.createdAt && (
-          <div>
-            <p className="text-gray-500 dark:text-gray-400 text-sm">Updated</p>
-            <p className="text-gray-900 dark:text-white font-medium">
-              {new Date(feedback.updatedAt).toLocaleString()}
+
+        {/* Raw user agent */}
+        {feedback.userInfo?.browser && (
+          <div className="border border-[var(--border)] bg-[var(--bg-surface)] p-5">
+            <p className="font-mono text-xs text-[var(--text-dim)] uppercase tracking-widest mb-3">
+              User agent
+            </p>
+            <p className="font-mono text-xs text-[var(--text-muted)] break-all leading-relaxed">
+              {feedback.userInfo.browser}
             </p>
           </div>
         )}
-      </div>
 
-      {/* Tags */}
-      {feedback.tags && feedback.tags.length > 0 && (
-        <div className="mb-4">
-          <p className="text-gray-500 dark:text-gray-400 text-sm mb-2">Tags</p>
-          <div className="flex flex-wrap gap-2">
-            {feedback.tags.map((tag) => (
-              <span
-                key={tag}
-                className="px-3 py-1 rounded-full text-sm bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
-              >
-                {tag}
-              </span>
-            ))}
+        {/* Tags */}
+        {feedback.tags && feedback.tags.length > 0 && (
+          <div className="border border-[var(--border)] bg-[var(--bg-surface)] p-5">
+            <p className="font-mono text-xs text-[var(--text-dim)] uppercase tracking-widest mb-3">
+              Tags
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {feedback.tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="font-mono text-xs px-2.5 py-1 border border-[var(--border)] text-[var(--text-muted)]"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </motion.div>
     </div>
   );
 }

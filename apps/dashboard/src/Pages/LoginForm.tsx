@@ -1,14 +1,16 @@
-import { EyeIcon, EyeOffIcon, LockIcon } from "lucide-react";
+import { EyeIcon, EyeOffIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LoginFormData, loginSchema } from "../Schemas/LoginSchema";
-import { Button } from "../Components/ui/Button";
 import { useAuth } from "../Hooks/useAuth";
 import { toast } from "react-hot-toast";
 import { useEffect, useRef, useState } from "react";
+import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 export const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
 
   const {
     register,
@@ -22,13 +24,11 @@ export const LoginForm = () => {
   });
 
   const errorTimers = useRef<{ [key in keyof LoginFormData]?: NodeJS.Timeout }>(
-    {}
+    {},
   );
-
   useEffect(() => {
     Object.entries(errors).forEach(([field]) => {
       const key = field as keyof LoginFormData;
-
       if (!errorTimers.current[key]) {
         errorTimers.current[key] = setTimeout(() => {
           clearErrors(key);
@@ -36,7 +36,6 @@ export const LoginForm = () => {
         }, 3000);
       }
     });
-
     return () => {
       Object.values(errorTimers.current).forEach(clearTimeout);
       errorTimers.current = {};
@@ -44,215 +43,132 @@ export const LoginForm = () => {
   }, [errors, clearErrors]);
 
   const { login } = useAuth();
-
   const onSubmit = async (data: LoginFormData) => {
     try {
-      const response = await login({
-        identifier: data.identifier,
-        password: data.password,
-      });
-
-      if (!response.success) {
-        console.log(response.error);
-        setError("identifier", {
-          type: "manual",
-          message: "Invalid username or email",
-        });
-        setError("password", {
-          type: "manual",
-          message: "Invalid password",
-        });
-        setError("root", {
-          type: "manual",
-          message: response.error || "Invalid login credentials",
-        });
-      }
+      await login({ identifier: data.identifier, password: data.password });
     } catch (err: any) {
-      console.error("Login error:", err);
-      if (err.response) {
-        const errorMessage = err.response.data?.message || "Login failed";
-        setError("root", {
-          type: "manual",
-          message: errorMessage,
-        });
-        toast.error(errorMessage);
-      } else if (err.request) {
-        setError("root", {
-          type: "manual",
-          message: "Network error - please try again",
-        });
-      } else {
-        setError("root", {
-          type: "manual",
-          message: "An unexpected error occurred",
-        });
-      }
+      const msg = err?.response?.data?.message || "Invalid credentials";
+      setError("root", { type: "manual", message: msg });
+      toast.error(msg);
     }
   };
 
+  const inputClass =
+    "w-full bg-[var(--bg)] border border-[var(--border)] text-[var(--text)] text-sm font-mono px-4 py-3 placeholder:text-[var(--text-dim)] focus:outline-none focus:border-[var(--amber)] transition-colors";
+  const labelClass =
+    "block font-mono text-xs text-[var(--text-muted)] uppercase tracking-widest mb-2";
+
   return (
-    <div className="flex justify-center items-center h-screen">
-      <div className="h-fit sm:min-w-md rounded-2xl p-4 md:p-8 shadow-input bg-white dark:bg-white/3 shadow-xl">
-        <h2 className="font-bold text-xl text-center  text-neutral-800 dark:text-neutral-200">
-          Welcome back
-        </h2>
-        <p className="text-neutral-600 text-sm text-center max-w-sm mt-2 dark:text-neutral-300">
-          Login to access your account
-        </p>
+    <div className="min-h-screen bg-[var(--bg)] flex items-center justify-center px-4 font-serif">
+      <div
+        className="fixed inset-0 opacity-[0.025] pointer-events-none"
+        style={{
+          backgroundImage:
+            "linear-gradient(var(--amber) 1px, transparent 1px), linear-gradient(90deg, var(--amber) 1px, transparent 1px)",
+          backgroundSize: "48px 48px",
+        }}
+      />
 
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          aria-disabled={isSubmitting}
-          className="mt-8 space-y-6"
-        >
-          <div className="space-y-2">
-            <label
-              htmlFor="identifier"
-              className="text-sm font-medium text-neutral-700 dark:text-neutral-300"
-            >
-              Username or Email
-            </label>
-            <input
-              id="identifier"
-              {...register("identifier")}
-              className="flex h-10 w-full rounded-md border border-gray-300 dark:border-gray-700 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-100 dark:focus:ring-gray-400 dark:focus:ring-offset-gray-900"
-              placeholder="username@example.com"
-              aria-invalid={errors.identifier ? "true" : "false"}
-              aria-describedby={
-                errors.identifier ? "identifier-error" : undefined
-              }
-            />
-            {errors.identifier && (
-              <p
-                key={errors.identifier?.message}
-                className="text-sm text-red-500 transition-opacity duration-500 ease-in-out opacity-100"
-              >
-                {errors.identifier?.message}
-              </p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <label
-              htmlFor="password"
-              className="text-sm font-medium text-neutral-700 dark:text-neutral-300"
-            >
-              Password
-            </label>
-            <div className="relative">
-              <input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                {...register("password")}
-                className="flex h-10 w-full rounded-md border border-gray-300 dark:border-gray-700 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-100 dark:focus:ring-gray-400 dark:focus:ring-offset-gray-900"
-                placeholder="••••••••"
-              />
-              <button
-                className="absolute bottom-2 right-3 h-5 w-5 flex items-center justify-center text-gray-500 hover:text-gray-700 focus:outline-none"
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? <EyeOffIcon /> : <EyeIcon />}
-              </button>
-            </div>
-            {errors.password && (
-              <p
-                key={errors.password?.message}
-                className="text-sm text-red-500 transition-opacity duration-500 ease-in-out opacity-100"
-              >
-                {errors.password?.message}
-              </p>
-            )}
-          </div>
-          <div className="mt-4 text-right text-xs text-neutral-600 dark:text-neutral-400">
-            <a
-              href="#"
-              className="text-blue-600 hover:underline dark:text-blue-400"
-            >
-              Forgot password?
-            </a>
-          </div>
-
-          <Button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full relative inline-flex h-10 items-center justify-center rounded-md px-6 font-medium text-white transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 disabled:opacity-50 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-200 dark:focus:ring-gray-400 dark:focus:ring-offset-gray-900"
-          >
-            {isSubmitting ? (
-              <span className="flex items-center">
-                <svg
-                  className="animate-spin -ml-1 mr-2 h-4 w-4 text-white dark:text-gray-900"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-                Logging in...
-              </span>
-            ) : (
-              <>
-                <LockIcon className="mr-2 h-4 w-4" />
-                Login
-              </>
-            )}
-          </Button>
-          {errors.root && (
-            <p className="text-sm text-red-600 text-center mt-4">
-              {errors.root?.message}
-            </p>
-          )}
-        </form>
-
-        <div className="mt-4 text-center text-sm text-neutral-600 dark:text-neutral-400">
-          Don't have an account?{" "}
-          <a
-            href="/register"
-            className="text-blue-600 hover:underline dark:text-blue-400"
-          >
-            Sign up
-          </a>
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        className="relative z-10 w-full max-w-sm"
+      >
+        <div className="mb-10 text-center">
+          <span className="font-mono text-xs text-[var(--amber)] tracking-[0.3em] uppercase">
+            ◆ FeedbackHub
+          </span>
         </div>
-      </div>
+
+        <div className="border border-[var(--border)] bg-[var(--bg-surface)] p-8">
+          <div className="mb-8">
+            <h1 className="font-display text-2xl font-bold text-[var(--text)] mb-1">
+              Welcome back
+            </h1>
+            <p className="text-sm text-[var(--text-muted)]">
+              Sign in to your dashboard
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+            <div>
+              <label className={labelClass}>Username or email</label>
+              <input
+                {...register("identifier")}
+                placeholder="you@example.com"
+                className={inputClass}
+              />
+              {errors.identifier && (
+                <p className="mt-1.5 text-xs font-mono text-[var(--red)]">
+                  {errors.identifier.message}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className={labelClass}>Password</label>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  {...register("password")}
+                  placeholder="••••••••"
+                  className={inputClass}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-dim)] hover:text-[var(--text-muted)] transition-colors"
+                >
+                  {showPassword ? (
+                    <EyeOffIcon size={16} />
+                  ) : (
+                    <EyeIcon size={16} />
+                  )}
+                </button>
+              </div>
+              {errors.password && (
+                <p className="mt-1.5 text-xs font-mono text-[var(--red)]">
+                  {errors.password.message}
+                </p>
+              )}
+            </div>
+
+            {errors.root && (
+              <div className="border border-[var(--red)]/30 bg-[var(--red-bg)] px-4 py-3">
+                <p className="text-xs font-mono text-[var(--red)]">
+                  {errors.root.message}
+                </p>
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full bg-[var(--amber)] text-[#0e0e0f] font-mono font-medium text-sm py-3 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity flex items-center justify-center gap-2 mt-2"
+            >
+              {isSubmitting ? (
+                <>
+                  <span className="w-3.5 h-3.5 border border-[#0e0e0f] border-t-transparent rounded-full animate-spin" />
+                  Signing in...
+                </>
+              ) : (
+                "Sign in →"
+              )}
+            </button>
+          </form>
+        </div>
+
+        <p className="mt-5 text-center text-xs font-mono text-[var(--text-dim)]">
+          No account?{" "}
+          <button
+            onClick={() => navigate("/register")}
+            className="text-[var(--amber)] hover:opacity-80 transition-opacity"
+          >
+            Register free
+          </button>
+        </p>
+      </motion.div>
     </div>
   );
 };
-
-// Suggested improvements for "Remember Me" functionality:
-// 1. Backend logic
-// When generating the refresh token, set a longer expiration if "Remember Me" is checked.
-
-// in your login controller
-// res.cookie("refreshToken", refreshToken, {
-//   httpOnly: true,
-//   secure: true,
-//   sameSite: "strict",
-//   path: "/api/auth/refresh",
-//   maxAge: rememberMe ? 30 * 24 * 60 * 60 * 1000 : 7 * 24 * 60 * 60 * 1000, // 30 days if checked
-// });
-
-// 2. Frontend logic
-
-// On your login form:
-
-// const [rememberMe, setRememberMe] = useState(false);
-
-// const onSubmit = async (data) => {
-//   await loginAdmin({
-//     username: data.username,
-//     password: data.password,
-//     rememberMe, // pass to backend
-//   });
-// };

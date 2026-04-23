@@ -1,6 +1,18 @@
+import { useEffect, useState } from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "../Bars/Sidebar";
 import Navbar from "../Bars/Navbar";
+
+function useIsMd() {
+  const [isMd, setIsMd] = useState(() => window.innerWidth >= 768);
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 768px)");
+    const handler = (e: MediaQueryListEvent) => setIsMd(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+  return isMd;
+}
 
 interface DashboardRouteProps {
   Expand: boolean;
@@ -17,34 +29,32 @@ export const DashboardRoute = ({
   handleMouseEnter,
   handleMouseLeave,
 }: DashboardRouteProps) => {
-  const NavWidth = Expand ? "calc(100% - 16rem)" : "calc(100% - 4rem)";
+  const isMd = useIsMd();
+
+  const sidebarW = Expand ? "224px" : "64px";
+  const mainMargin = isMd ? sidebarW : "0px";
+  const navWidth = isMd ? `calc(100% - ${sidebarW})` : "100%";
 
   return (
-    <div className="bg-gray-50 dark:bg-gray-900 font-outfit min-h-screen overflow-x-hidden">
+    <div className="min-h-screen bg-[var(--bg)] font-serif overflow-x-hidden">
       <Sidebar
         isCollapsed={isCollapsed}
         handleMouseEnter={handleMouseEnter}
         handleMouseLeave={handleMouseLeave}
         Expand={Expand}
       />
-      <Navbar
-        isCollapsed={isCollapsed}
-        setIsCollapsed={setIsCollapsed}
-        className="flex lg:hidden w-full transition-all duration-200"
-      />
       <main
-        className={`flex-1 transition-all duration-200 overflow-x-hidden ml-16 ${
-          Expand ? "md:ml-64" : ""
-        }`}
+        className="transition-all duration-200 overflow-x-hidden"
+        style={{ marginLeft: mainMargin }}
       >
         <Navbar
           isCollapsed={isCollapsed}
           setIsCollapsed={setIsCollapsed}
           Expand={Expand}
-          className="hidden lg:flex w-full h-16 pr-16"
-          NavWidth={NavWidth}
+          className="flex w-full"
+          NavWidth={navWidth}
         />
-        <div className="p-4 mt-16">
+        <div className="mt-14">
           <Outlet />
         </div>
       </main>

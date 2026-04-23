@@ -1,53 +1,85 @@
-import React from "react";
-import { AlertTriangle } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { AlertTriangle, RotateCcw, ArrowLeft, Home } from "lucide-react";
 
 interface ErrorPageProps {
   errorMessage?: string;
 }
 
-const ErrorPage: React.FC<ErrorPageProps> = ({ errorMessage }) => {
+const ErrorPage = ({ errorMessage }: ErrorPageProps) => {
   const navigate = useNavigate();
+
   return (
-    <div className="flex h-screen w-full items-center justify-center bg-gradient-to-br from-gray-100 via-white to-gray-200 dark:from-gray-900 dark:via-black dark:to-gray-800 transition-colors duration-200 text-black dark:text-white px-4">
+    <div className="min-h-screen bg-[var(--bg)] flex items-center justify-center px-4 font-serif">
+      {/* Background grid */}
+      <div
+        className="fixed inset-0 opacity-[0.025] pointer-events-none"
+        style={{
+          backgroundImage:
+            "linear-gradient(var(--red) 1px, transparent 1px), linear-gradient(90deg, var(--red) 1px, transparent 1px)",
+          backgroundSize: "48px 48px",
+        }}
+      />
+
       <motion.div
-        initial={{ opacity: 0, y: 40 }}
+        initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="max-w-lg rounded-2xl shadow-lg p-8 text-center"
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        className="relative z-10 text-center max-w-md w-full"
       >
-        <div className="flex justify-center mb-6">
-          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-red-100 dark:bg-red-900">
-            <AlertTriangle className="h-10 w-10 text-red-500 dark:text-red-400" />
-          </div>
+        {/* Icon */}
+        <div className="inline-flex items-center justify-center w-16 h-16 bg-[var(--red-bg)] border border-[var(--red)]/30 mb-6">
+          <AlertTriangle size={28} className="text-[var(--red)]" />
         </div>
 
-        <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">
-          Oops! Something went wrong
-        </h1>
-        <p className="text-gray-600 dark:text-gray-300 mb-6">
-          {errorMessage || "An unexpected error occurred. Please try again."}
+        {/* Label */}
+        <p className="font-mono text-xs text-[var(--red)] tracking-[0.3em] uppercase mb-3">
+          Something went wrong
         </p>
-        <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
+
+        {/* Heading */}
+        <h1 className="font-display text-3xl md:text-4xl font-bold text-[var(--text)] mb-4 leading-tight">
+          Unexpected error
+        </h1>
+
+        {/* Error message */}
+        {errorMessage && (
+          <div className="border border-[var(--red)]/20 bg-[var(--red-bg)] px-4 py-3 mb-6 text-left">
+            <p className="font-mono text-xs text-[var(--red)] break-words">
+              {errorMessage}
+            </p>
+          </div>
+        )}
+
+        {!errorMessage && (
+          <p className="text-sm text-[var(--text-muted)] mb-6 leading-relaxed">
+            An unexpected error occurred. You can try again, go back, or return
+            home.
+          </p>
+        )}
+
+        {/* Actions */}
+        <div className="flex flex-col sm:flex-row gap-2 justify-center">
+          <button
+            onClick={() => window.location.reload()}
+            className="flex items-center justify-center gap-2 px-5 py-2.5 bg-[var(--red)] text-white font-mono text-xs hover:opacity-90 transition-opacity"
+          >
+            <RotateCcw size={13} />
+            Retry
+          </button>
           <button
             onClick={() => navigate(-1)}
-            className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 transition"
+            className="flex items-center justify-center gap-2 px-5 py-2.5 border border-[var(--border)] text-[var(--text-muted)] font-mono text-xs hover:border-[var(--border-light)] hover:text-[var(--text)] transition-colors"
           >
-            Go Back
+            <ArrowLeft size={13} />
+            Go back
           </button>
           <button
             onClick={() => navigate("/")}
-            className="px-4 py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white transition"
+            className="flex items-center justify-center gap-2 px-5 py-2.5 border border-[var(--border)] text-[var(--text-muted)] font-mono text-xs hover:border-[var(--border-light)] hover:text-[var(--text)] transition-colors"
           >
-            Go Home
-          </button>
-
-          <button
-            onClick={() => window.location.reload()}
-            className="rounded-xl bg-red-500 px-6 py-2 text-white font-medium shadow hover:bg-red-600 transition-colors"
-          >
-            Retry
+            <Home size={13} />
+            Home
           </button>
         </div>
       </motion.div>

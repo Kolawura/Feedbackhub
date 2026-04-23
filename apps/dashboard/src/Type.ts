@@ -21,13 +21,6 @@ export type ButtonProps = {
   children: ReactNode;
 } & ButtonHTMLAttributes<HTMLButtonElement>;
 
-export type WidgetConfig = {
-  buttonText: string;
-  color: string;
-  position: "right" | "left";
-  theme: "light" | "dark";
-};
-
 export interface Feedback {
   _id: string;
   siteId: string;
@@ -61,7 +54,15 @@ export interface AnalyticsData {
   feedbackTrend: { date: string; count: number }[];
   topSenders: { name: string; email: string; count: number }[];
 }
+export interface WidgetConfig {
+  buttonText: string;
+  buttonColor: string;
+  position: "bottom-right" | "bottom-left" | "top-right" | "top-left";
+  theme: "light" | "dark" | "auto";
+}
+
 export interface Site {
   siteId: string;
   name: string;
+  widgetConfig?: WidgetConfig;
 }

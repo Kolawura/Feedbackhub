@@ -1,10 +1,8 @@
 import {
   ChartNoAxesCombined,
-  Home,
   LayoutDashboard,
   LogOut,
   MessageSquare,
-  MessageSquareCode,
   Settings,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
@@ -12,129 +10,112 @@ import { SidebarProps } from "../../Type";
 import { useAuth } from "../../Hooks/useAuth";
 
 const Sidebar = ({
-  isCollapsed,
   handleMouseEnter,
   handleMouseLeave,
   Expand,
 }: SidebarProps) => {
-  console.log(isCollapsed);
-
   const location = useLocation();
   const { user, logout } = useAuth();
 
   const links = [
     {
-      name: "Home",
-      path: "/",
-      icon: <Home size={25} />,
-    },
-    {
       name: "Dashboard",
       path: "/dashboard",
-      icon: <LayoutDashboard size={25} />,
-    },
-    {
-      name: "Analytics",
-      path: "/analytics",
-      icon: <ChartNoAxesCombined size={25} />,
+      icon: <LayoutDashboard size={18} />,
     },
     {
       name: "Feedbacks",
       path: "/feedbacks",
-      icon: <LayoutDashboard size={25} />,
+      icon: <MessageSquare size={18} />,
     },
     {
-      name: "Settings",
-      path: "/settings",
-      icon: <Settings size={25} />,
+      name: "Analytics",
+      path: "/analytics",
+      icon: <ChartNoAxesCombined size={18} />,
     },
+    { name: "Settings", path: "/settings", icon: <Settings size={18} /> },
   ];
 
   return (
+    // Hidden on mobile (< md). On md+ always visible, width controlled by Expand.
     <aside
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      className={`${
-        Expand ? "w-16 md:w-64" : "w-16 "
-      } mt-16 lg:mt-0 fixed h-screen transition-all duration-200 dark:bg-gray-900 bg-white text-gray-700 border-r border-gray-200 dark:border-gray-800 dark:text-gray-200 flex flex-col`}
+      style={{ width: Expand ? "224px" : "64px" }}
+      className="hidden md:flex flex-col fixed top-0 left-0 h-screen z-40 transition-all duration-200 overflow-hidden bg-[var(--bg-surface)] border-r border-[var(--border)]"
     >
-      <div className="flex items-center justify-center h-16 mb-10 gap-4 border-b border-gray-300 dark:border-gray-700">
-        <MessageSquareCode size={25} />
+      {/* Logo */}
+      <div className="flex items-center h-14 px-4 border-b border-[var(--border)] flex-shrink-0">
+        <span className="text-[var(--amber)] font-mono text-sm flex-shrink-0">
+          ◆
+        </span>
         {Expand && (
-          <h2
-            className={`${
-              Expand ? "hidden md:flex" : ""
-            } text-2xl font-semibold`}
-          >
+          <span className="ml-3 font-display font-bold text-[var(--text)] text-sm tracking-wide whitespace-nowrap">
             FeedbackHub
-          </h2>
+          </span>
         )}
       </div>
 
-      <nav className="flex flex-col py-4 px-0 md:px-4 gap-2">
+      {/* Nav */}
+      <nav className="flex-1 py-4 px-2 space-y-0.5 overflow-hidden">
         {links.map((link) => {
           const isActive = location.pathname === link.path;
           return (
             <Link
-              aria-label={link.name}
               key={link.name}
               to={link.path}
-              className={`flex items-center gap-2 rounded-lg m-auto md:m-0 px-3 md:px-4 py-2 text-lg h-12 ${
-                Expand ? "md:justify-start" : "justify-center "
-              }${
+              aria-label={link.name}
+              title={!Expand ? link.name : undefined}
+              className={`flex items-center gap-3 px-3 py-2.5 font-mono text-xs uppercase tracking-widest transition-all duration-150 group border-l-2 whitespace-nowrap ${
                 isActive
-                  ? "text-blue-600 dark:text-blue-600 font-semibold hover:bg-blue-100 dark:hover:bg-blue-950 "
-                  : "hover:bg-gray-100 dark:hover:bg-white/4"
+                  ? "bg-[var(--amber-bg)] text-[var(--amber)] border-[var(--amber)]"
+                  : "text-[var(--text-dim)] hover:text-[var(--text-muted)] hover:bg-[var(--bg-hover)] border-transparent"
               }`}
             >
-              <div>{link.icon}</div>
-              {Expand && <span className="hidden md:flex">{link.name}</span>}
+              <span
+                className={`flex-shrink-0 ${isActive ? "text-[var(--amber)]" : "text-[var(--text-dim)] group-hover:text-[var(--text-muted)]"}`}
+              >
+                {link.icon}
+              </span>
+              {Expand && <span className="overflow-hidden">{link.name}</span>}
             </Link>
           );
         })}
       </nav>
 
-      <div className="flex flex-col p-4 gap-2 absolute bottom-16 lg:bottom-0 w-full bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
+      {/* User footer */}
+      <div className="border-t border-[var(--border)] p-3 flex-shrink-0">
         <div
-          className={`flex items-center gap-2 rounded-lg px-4 py-2 text-lg h-12 ${
-            Expand ? "justify-center md:justify-start" : "justify-center"
-          }`}
+          className={`flex items-center gap-3 mb-2 ${!Expand ? "justify-center" : ""}`}
         >
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-accent to-primary flex items-center justify-center flex-shrink-0">
-            <span className="text-sm font-bold text-accent-foreground">
-              {/* {user?.bannerImg && (
-              <Image
-                src={user.bannerImg}
-                alt={`${user.firstName} ${user.lastName} Avatar`}
-                width={40}
-                height={40}
-                className="rounded-full"
-              />
-            )} */}
-              {user?.firstName.charAt(0)}
-              {user?.lastName.charAt(0)}
+          <div className="w-8 h-8 bg-[var(--amber-bg)] border border-[var(--amber-border)] flex items-center justify-center flex-shrink-0">
+            <span className="font-mono text-xs font-bold text-[var(--amber)]">
+              {user?.firstName?.charAt(0)}
+              {user?.lastName?.charAt(0)}
             </span>
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-sidebar-foreground truncate">
-              {user?.firstName} {user?.lastName}
-            </p>
-            <p className="text-xs text-sidebar-foreground/60 truncate">
-              @{user?.username}
-            </p>
-          </div>
+          {Expand && (
+            <div className="min-w-0">
+              <p className="text-xs font-mono text-[var(--text)] truncate">
+                {user?.firstName} {user?.lastName}
+              </p>
+              <p className="text-xs font-mono text-[var(--text-dim)] truncate">
+                @{user?.username}
+              </p>
+            </div>
+          )}
         </div>
         <button
-          type="button"
           onClick={() => logout()}
-          className={`flex items-center gap-2 rounded-lg py-2 text-sm h-12 ${
-            Expand
-              ? "justify-center md:px-4 md:justify-start"
-              : "justify-center"
-          } `}
+          title={!Expand ? "Logout" : undefined}
+          className={`flex items-center gap-2 w-full px-3 py-2 font-mono text-xs text-[var(--text-dim)] hover:text-[var(--red)] hover:bg-[var(--red-bg)] transition-colors ${!Expand ? "justify-center" : ""}`}
         >
-          <LogOut />
-          {Expand && <span className="hidden md:flex"> Logout </span>}
+          <LogOut size={14} className="flex-shrink-0" />
+          {Expand && (
+            <span className="uppercase tracking-widest whitespace-nowrap">
+              Logout
+            </span>
+          )}
         </button>
       </div>
     </aside>

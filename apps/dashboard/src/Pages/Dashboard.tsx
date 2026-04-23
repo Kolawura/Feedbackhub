@@ -1,110 +1,126 @@
-import type React from "react";
-import { Clock, CheckCircle, AlertCircle, ArrowUpRight } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "../Components/ui/Card";
-import { Button } from "../Components/ui/Button";
 import { motion } from "framer-motion";
-import { RecentFeedbackItem } from "../Components/Feedbacks/RecentFeedbackItem";
+import {
+  ArrowUpRight,
+  MessageSquare,
+  ThumbsUp,
+  ThumbsDown,
+  Globe,
+  ArrowRight,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import Loader from "../Components/ui/Loader";
-import { EmptyState } from "../Components/ui/EmptyState";
-import { StartCardDiv } from "../Components/Dashboard/StartCardDiv";
 import { useAuth } from "../Hooks/useAuth";
 import { useFeedbacks } from "../Hooks/useFeedback";
+import { useSites } from "../Hooks/useSite";
+import { useDashboardAnalytics } from "../Hooks/useAnalytics";
+import { useSiteStore } from "../Store/useSiteStore";
+import { Feedback } from "../Type";
+import {
+  categoryDot,
+  categoryStyle,
+  priorityStyle,
+} from "../Components/ui/styles";
+import { fadeUp } from "../utils/fadeUp";
+import RecentFeedback from "../Components/Feedbacks/RecentFeedbacks";
+import NoFeedbacks from "../Components/Feedbacks/NoFeedbacks";
+import StatCard from "../Components/Dashboard/StartCard";
 
-const Dashboard: React.FC = () => {
+const Dashboard = () => {
   const navigate = useNavigate();
-  const { data: feedbacks, isLoading, error } = useFeedbacks();
   const { user } = useAuth();
-  const recentFeedback = feedbacks?.slice(0, 5);
+  const { data: feedbacks, isLoading } = useFeedbacks();
+  const { sitesQuery } = useSites();
+  const { selectedSiteId } = useSiteStore();
+  const { data: analytics } = useDashboardAnalytics(selectedSiteId);
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case "critical":
-        return "destructive";
-      case "high":
-        return "destructive";
-      case "medium":
-        return "default";
-      case "low":
-        return "secondary";
-      default:
-        return "default";
-    }
-  };
+  const stats = [
+    {
+      label: "Total feedback",
+      value: feedbacks?.length ?? 0,
+      icon: <MessageSquare size={14} />,
+      color: "var(--amber)",
+    },
+    {
+      label: "Positive signals",
+      value: analytics?.positive ?? 0,
+      icon: <ThumbsUp size={14} />,
+      color: "var(--green)",
+    },
+    {
+      label: "Issues flagged",
+      value: analytics?.negative ?? 0,
+      icon: <ThumbsDown size={14} />,
+      color: "var(--red)",
+    },
+    {
+      label: "Sites tracked",
+      value: sitesQuery?.data?.length ?? 0,
+      icon: <Globe size={14} />,
+      color: "var(--blue)",
+    },
+  ];
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "open":
-        return <AlertCircle className="h-4 w-4 text-orange-500" />;
-      case "in-progress":
-        return <Clock className="h-4 w-4 text-blue-500" />;
-      case "resolved":
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case "closed":
-        return <CheckCircle className="h-4 w-4 text-gray-500" />;
-      default:
-        return <AlertCircle className="h-4 w-4" />;
-    }
-  };
+  const recent = feedbacks?.slice(0, 6) ?? [];
 
   return (
-    <div className="space-y-6 p-6 text-gray-900 dark:text-gray-100 transition-all duration-200">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-        <h2 className="text-2xl text-center font-semibold text-gray-800 dark:text-white mb-4">
-          Welcome back, {user?.username} 👋
-        </h2>
-        <p className="text-gray-600">Overview of your feedback hub activity</p>
+    <div className="min-h-screen p-4 md:p-6 space-y-6 md:space-y-8">
+      {/* Header */}
+      <motion.div {...fadeUp(0)}>
+        <p className="font-mono text-xs text-[var(--amber)] tracking-[0.3em] uppercase mb-1">
+          Dashboard
+        </p>
+        <h1 className="font-display text-2xl md:text-3xl font-bold text-[var(--text)]">
+          Good to see you,{" "}
+          <span className="text-[var(--amber)]">{user?.firstName}.</span>
+        </h1>
+      </motion.div>
+
+      {/* Stat tiles */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {stats.map((s, i) => (
+          <StatCard s={s} i={i} isLoading={isLoading} />
+        ))}
       </div>
-      <StartCardDiv />
-      <motion.div
-        initial={{ opacity: 0, x: -30 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 0.6, duration: 0.5 }}
-      >
-        {feedbacks?.length === 0 ? (
-          <EmptyState message="No feedback data available" variant="feedback" />
-        ) : isLoading ? (
-          <Loader message="Loading feedbacks..." />
-        ) : (
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>Recent Feedback</CardTitle>
-                <CardDescription>
-                  Latest feedback submissions from users
-                </CardDescription>
+
+      {/* Recent feedback */}
+      <motion.div {...fadeUp(0.25)}>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <p className="font-mono text-xs text-[var(--text-dim)] uppercase tracking-widest mb-0.5">
+              Recent activity
+            </p>
+            <h2 className="font-display text-lg font-semibold text-[var(--text)]">
+              Latest feedback
+            </h2>
+          </div>
+          <button
+            onClick={() => navigate("/feedbacks")}
+            className="flex items-center gap-1.5 font-mono text-xs text-[var(--text-muted)] hover:text-[var(--amber)] transition-colors group"
+          >
+            View all
+            <ArrowRight
+              size={12}
+              className="group-hover:translate-x-0.5 transition-transform"
+            />
+          </button>
+        </div>
+
+        <div className="border border-[var(--border)] bg-[var(--bg-surface)] divide-y divide-[var(--border)]">
+          {isLoading ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="p-4 flex items-center gap-4">
+                <div className="w-24 h-3 bg-[var(--bg-hover)] animate-pulse rounded-sm" />
+                <div className="flex-1 h-3 bg-[var(--bg-hover)] animate-pulse rounded-sm" />
+                <div className="w-16 h-3 bg-[var(--bg-hover)] animate-pulse rounded-sm" />
               </div>
-              <Button variant="outline" onClick={() => navigate("/feedbacks")}>
-                View All
-                <ArrowUpRight className="ml-2 h-4 w-4" />
-              </Button>
-            </CardHeader>
-            {feedbacks ? (
-              <CardContent>
-                <div className="space-y-4">
-                  {recentFeedback?.map((feedback) => (
-                    <div key={feedback._id}>
-                      <RecentFeedbackItem
-                        feedback={feedback}
-                        getStatusIcon={getStatusIcon}
-                        getPriorityColor={getPriorityColor}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            ) : (
-              <div>{error?.message}</div>
-            )}
-          </Card>
-        )}
+            ))
+          ) : recent.length === 0 ? (
+            <NoFeedbacks />
+          ) : (
+            recent.map((fb: Feedback) => (
+              <RecentFeedback key={fb._id} {...fb} />
+            ))
+          )}
+        </div>
       </motion.div>
     </div>
   );

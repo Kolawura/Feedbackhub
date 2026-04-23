@@ -13,7 +13,6 @@ export const useDashboardAnalytics = (siteId: string | null) => {
       return res.data.data;
     },
     staleTime: 5 * 60 * 1000,
-    enabled: !!siteId,
     placeholderData: keepPreviousData,
   });
 };
@@ -22,14 +21,14 @@ export const useVisitorsAnalytics = (siteId: string | null, range: string) => {
   return useQuery({
     queryKey: ["visitors", siteId || "all", range],
     queryFn: async () => {
-      if (!siteId) throw new Error("Site ID is required");
-      const res = await api.get(
-        `/api/visitor/analytics/${siteId}?range=${range}`,
-      );
-      return res.data;
+      const url = siteId
+        ? `/api/visitor/analytics/${siteId}?range=${range}`
+        : `/api/visitor/analytics?range=${range}`;
+      const res = await api.get(url);
+      if (!res.data.success) throw new Error(res.data.message);
+      return res.data.data;
     },
     staleTime: 5 * 60 * 1000,
-    enabled: !!siteId,
     placeholderData: keepPreviousData,
   });
 };

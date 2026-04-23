@@ -94,7 +94,7 @@ export const SelectContent: React.FC<
     currentValue?: string;
   }
 > = ({ children, onSelect, currentValue }) => (
-  <div className="absolute top-full left-0 right-0 z-50 mt-1 max-h-60 overflow-auto rounded-md bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 shadow-lg">
+  <div className="absolute top-full left-0 right-0 z-1 mt-1 max-h-60 overflow-auto rounded-md bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 shadow-lg">
     {React.Children.map(children, (child) => {
       if (
         React.isValidElement<SelectItemProps>(child) &&
