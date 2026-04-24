@@ -7,285 +7,223 @@ const API_BASE =
     : "https://feedbackhub-myce.onrender.com";
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
-
 const style = document.createElement("style");
 style.textContent = `
-  .feedback-button {
+  .fh-button {
     position: fixed;
     bottom: 24px;
     right: 24px;
-    color: white;
+    background-color: #f5a623;
+    color: #fff;
     padding: 12px 20px;
     border-radius: 9999px;
     font-size: 14px;
     font-weight: 600;
+    font-family: sans-serif;
     border: none;
     cursor: pointer;
     z-index: 99999;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-    transition: opacity 0.2s, transform 0.1s;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.22);
+    transition: opacity 0.2s, transform 0.15s;
   }
-  .feedback-button:hover {
-    opacity: 0.88;
-    transform: scale(1.03);
-  }
-  .feedback-modal-container {
+  .fh-button:hover { opacity: 0.88; transform: scale(1.04); }
+
+  .fh-overlay {
     position: fixed;
-    top: 0;
-    left: 0;
-    height: 100vh;
-    width: 100vw;
+    inset: 0;
+    background: rgba(0,0,0,0.38);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
     display: none;
     justify-content: center;
     align-items: center;
     z-index: 100000;
-    background-color: rgba(0, 0, 0, 0.35);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
   }
-  .feedback-modal {
+  .fh-modal {
+    position: relative;
+    width: 90%;
     min-width: 280px;
     max-width: 420px;
-    width: 90%;
-    background-color: #fff;
-    padding: 24px;
-    border: 1px solid #e5e7eb;
+    background: #fff;
     border-radius: 12px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
-    position: relative;
-  }
-  .feedback-modal h3 {
-    margin: 0 0 16px;
-    font-size: 18px;
-    font-weight: 600;
+    padding: 24px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    font-family: sans-serif;
     color: #111827;
+    max-height: 90vh;
+    overflow-y: auto;
   }
-  .feedback-modal form {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
+  .fh-modal.fh-dark {
+    background: #1e1e21;
+    color: #e8e6e0;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
   }
-  .feedback-modal input[type="text"],
-  .feedback-modal input[type="email"],
-  .feedback-modal textarea,
-  .feedback-modal select {
+  .fh-modal h3 { margin: 0 0 16px; font-size: 17px; font-weight: 600; }
+  .fh-modal form { display: flex; flex-direction: column; gap: 10px; }
+  .fh-modal label { display: block; font-size: 12px; font-weight: 500; margin-bottom: 3px; color: #6b7280; }
+  .fh-modal.fh-dark label { color: #9ca3af; }
+  .fh-modal input[type=text],
+  .fh-modal input[type=email],
+  .fh-modal textarea,
+  .fh-modal select {
     width: 100%;
     box-sizing: border-box;
     border: 1px solid #d1d5db;
     border-radius: 6px;
-    padding: 9px 12px;
+    padding: 8px 11px;
     font-size: 14px;
+    font-family: sans-serif;
     color: #111827;
     background: #fff;
     transition: border-color 0.15s;
   }
-  .feedback-modal input[type="text"]:focus,
-  .feedback-modal input[type="email"]:focus,
-  .feedback-modal textarea:focus,
-  .feedback-modal select:focus {
+  .fh-modal.fh-dark input[type=text],
+  .fh-modal.fh-dark input[type=email],
+  .fh-modal.fh-dark textarea,
+  .fh-modal.fh-dark select {
+    background: #0e0e0f;
+    border-color: #2a2a2e;
+    color: #e8e6e0;
+  }
+  .fh-modal input:focus,
+  .fh-modal textarea:focus,
+  .fh-modal select:focus {
     outline: none;
     border-color: #2563eb;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
   }
-  .feedback-modal input::placeholder,
-  .feedback-modal textarea::placeholder {
-    color: #9ca3af;
-  }
-  .feedback-modal textarea {
-    height: 100px;
-    resize: vertical;
-  }
-  .feedback-modal input[type="file"] {
-    font-size: 13px;
-    color: #6b7280;
-    padding: 6px 0;
-  }
-  .feedback-modal label {
-    font-size: 13px;
-    font-weight: 500;
-    color: #374151;
-    margin-bottom: 2px;
-    display: block;
-  }
-  .feedback-modal .field {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-    margin-bottom: 6px;
-  }
-  .feedback-modal p.error-msg {
-    opacity: 0;
+  .fh-modal input::placeholder,
+  .fh-modal textarea::placeholder { color: #9ca3af; }
+  .fh-modal textarea { height: 90px; resize: vertical; }
+  .fh-modal .fh-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .fh-modal .fh-field { display: flex; flex-direction: column; }
+  .fh-modal .fh-err {
+    font-size: 11px;
+    color: #dc2626;
+    margin: 2px 0 0;
+    min-height: 0;
     max-height: 0;
     overflow: hidden;
-    color: #dc2626;
-    font-size: 12px;
-    margin: 0;
-    transition: opacity 0.25s ease, max-height 0.25s ease;
+    opacity: 0;
+    transition: max-height 0.2s, opacity 0.2s;
   }
-  .feedback-modal p.error-msg.show {
-    opacity: 1;
-    max-height: 40px;
-  }
-  .feedback-modal .form-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-  }
-  .feedback-modal .btn-submit {
-    background-color: #2563eb;
-    color: white;
-    padding: 10px 16px;
+  .fh-modal .fh-err.show { max-height: 32px; opacity: 1; }
+  .fh-modal .fh-submit {
+    background: #2563eb;
+    color: #fff;
     border: none;
     border-radius: 8px;
-    cursor: pointer;
-    font-size: 15px;
+    padding: 10px;
+    font-size: 14px;
     font-weight: 600;
-    transition: background-color 0.2s;
-    margin-top: 4px;
-    width: 100%;
+    font-family: sans-serif;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-top: 2px;
   }
-  .feedback-modal .btn-submit:hover:not(:disabled) {
-    background-color: #1d4ed8;
-  }
-  .feedback-modal .btn-submit:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-  .feedback-modal .btn-close {
+  .fh-modal .fh-submit:hover:not(:disabled) { background: #1d4ed8; }
+  .fh-modal .fh-submit:disabled { opacity: 0.55; cursor: not-allowed; }
+  .fh-modal .fh-close {
     position: absolute;
-    top: 16px;
-    right: 16px;
+    top: 14px; right: 14px;
     background: none;
     border: none;
-    cursor: pointer;
     font-size: 20px;
+    cursor: pointer;
     color: #9ca3af;
     line-height: 1;
     padding: 2px 6px;
     border-radius: 4px;
     transition: color 0.15s, background 0.15s;
   }
-  .feedback-modal .btn-close:hover {
-    color: #374151;
-    background: #f3f4f6;
-  }
-  .feedback-modal--dark {
-    background-color: #1e1e21;
-    border-color: #2a2a2e;
-    color: #e8e6e0;
-  }
-  .feedback-modal--dark h3 { color: #e8e6e0; }
-  .feedback-modal--dark label { color: #7a7870; }
-  .feedback-modal--dark input,
-  .feedback-modal--dark textarea,
-  .feedback-modal--dark select {
-    background-color: #0e0e0f;
-    border-color: #2a2a2e;
-    color: #e8e6e0;
-  }
-  .feedback-modal--dark .footer-note { color: #3d3d42; }
-  .feedback-modal--dark .footer-note a { color: #f5a623; }
-  .feedback-modal--dark .btn-close { color: #3d3d42; }
-  .feedback-modal--dark .btn-close:hover { color: #7a7870; background:#2a2a2e; }
+  .fh-modal .fh-close:hover { color: #374151; background: #f3f4f6; }
+  .fh-modal.fh-dark .fh-close:hover { color: #e8e6e0; background: #2a2a2e; }
+  .fh-modal .fh-footer {
     margin: 12px 0 0;
-    font-size: 12px;
+    font-size: 11px;
     color: #9ca3af;
     text-align: center;
   }
-  .feedback-modal .footer-note a {
-    color: #2563eb;
-    text-decoration: none;
-    font-weight: 500;
-  }
-  .feedback-modal .footer-note a:hover {
-    text-decoration: underline;
-  }
-  .feedback-modal p.modal-status {
-    margin: 0;
-    font-size: 16px;
-    font-weight: 600;
-    color: #2563eb;
+  .fh-modal .fh-footer a { color: #2563eb; text-decoration: none; font-weight: 500; }
+  .fh-modal .fh-footer a:hover { text-decoration: underline; }
+  .fh-modal .fh-success {
     text-align: center;
     padding: 24px 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-  }
-  .feedback-modal .spinner {
-    display: inline-block;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    border: 2px solid #2563eb;
-    border-top-color: transparent;
-    animation: fh-spin 0.8s linear infinite;
-  }
-  @keyframes fh-spin {
-    to { transform: rotate(360deg); }
-  }
-  .feedback-modal p.success-msg {
-    margin: 0;
     font-size: 16px;
     font-weight: 600;
     color: #16a34a;
-    text-align: center;
-    padding: 24px 0;
   }
-  .validating-error-message {
-    color: #dc2626;
-    font-size: 14px;
-    font-weight: 500;
-    text-align: center;
-    margin: 16px 0 0;
-    padding: 12px 16px;
-    background-color: #fef2f2;
-    border-radius: 8px;
+  .fh-modal .fh-error-banner {
+    background: #fef2f2;
     border: 1px solid #fecaca;
-    animation: fh-shake 0.4s ease-in-out;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 13px;
+    color: #dc2626;
+    text-align: center;
+    animation: fh-shake 0.35s ease;
   }
   @keyframes fh-shake {
     0%,100% { transform: translateX(0); }
     25%      { transform: translateX(-5px); }
     75%      { transform: translateX(5px); }
   }
-  @keyframes fh-fadeOut {
-    from { opacity: 1; transform: scale(1); }
-    to   { opacity: 0; transform: scale(0.97); }
+  @keyframes fh-fadeout {
+    to { opacity: 0; transform: scale(0.97); }
   }
-  .modal-fade-out {
-    animation: fh-fadeOut 0.35s ease-out forwards;
-  }
+  .fh-fadeout { animation: fh-fadeout 0.3s ease forwards; }
 `;
 document.head.appendChild(style);
 
-// ─── Init ─────────────────────────────────────────────────────────────────────
-
+// ─── Boot ─────────────────────────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
-  const SESSION_START_KEY = "feedbackhub-session-start";
-  const VISITOR_ID_KEY = "feedbackhub-visitor-id";
-  const GEO_CACHE_KEY = "feedbackhub-geo";
-  const VISITOR_TRACKED_KEY = "feedbackhub-tracked";
-  const GEO_CACHE_DURATION = 24 * 60 * 60 * 1000;
+  // ── Storage keys (namespaced to avoid collisions with host site) ────────────
+  const KEY_VISITOR_ID = `fh_vid_${SITE_ID}`;
+  const KEY_SESSION_ID = `fh_sid_${SITE_ID}`; // sessionStorage — clears on tab close
+  const KEY_SESSION_START = `fh_ss_${SITE_ID}`; // sessionStorage
+  const KEY_GEO = `fh_geo`; // localStorage — shared across sites
+  const KEY_GEO_TS = `fh_geo_ts`;
+  const GEO_TTL = 24 * 60 * 60 * 1000; // 24h
+  const SESSION_TIMEOUT = 30 * 60 * 1000; // 30min inactivity = new session
 
-  // ─── Helpers ───────────────────────────────────────────────────────────────
-
+  // ── Visitor ID: persists forever in localStorage (same device = same ID) ───
   function getOrCreateVisitorId() {
-    let id = localStorage.getItem(VISITOR_ID_KEY);
+    let id = localStorage.getItem(KEY_VISITOR_ID);
     if (!id) {
       id = crypto.randomUUID();
-      localStorage.setItem(VISITOR_ID_KEY, id);
+      localStorage.setItem(KEY_VISITOR_ID, id);
     }
     return id;
   }
 
-  function getSessionStart() {
-    let session = sessionStorage.getItem(SESSION_START_KEY);
-    if (!session) {
-      session = new Date().toISOString();
-      sessionStorage.setItem(SESSION_START_KEY, session);
+  // ── Session ID: new session if tab is fresh OR last activity > 30 min ago ──
+  // Stored in sessionStorage so it clears when browser/tab closes.
+  // We also track last activity time so long idle gaps create new sessions.
+  const KEY_LAST_ACTIVITY = `fh_la_${SITE_ID}`;
+
+  function getOrCreateSession() {
+    const now = Date.now();
+    let sessionId = sessionStorage.getItem(KEY_SESSION_ID);
+    let sessionStart = sessionStorage.getItem(KEY_SESSION_START);
+    const lastActivity = parseInt(
+      localStorage.getItem(KEY_LAST_ACTIVITY) || "0",
+      10,
+    );
+
+    // If last activity was more than SESSION_TIMEOUT ago, start a fresh session
+    const timedOut = lastActivity && now - lastActivity > SESSION_TIMEOUT;
+
+    if (!sessionId || timedOut) {
+      sessionId = crypto.randomUUID();
+      sessionStart = new Date().toISOString();
+      sessionStorage.setItem(KEY_SESSION_ID, sessionId);
+      sessionStorage.setItem(KEY_SESSION_START, sessionStart);
     }
-    return session;
+
+    // Update last activity timestamp on every page load
+    localStorage.setItem(KEY_LAST_ACTIVITY, String(now));
+
+    return { sessionId, sessionStart };
   }
 
   function getUserInfo() {
@@ -293,133 +231,120 @@ document.addEventListener("DOMContentLoaded", () => {
       userAgent: navigator.userAgent,
       language: navigator.language,
       platform: navigator.platform,
-      screenWidth: window.innerWidth,
-      screenHeight: window.innerHeight,
+      screenWidth: screen.width, // use screen.width not innerWidth (viewport can vary)
+      screenHeight: screen.height,
       timezoneOffset: new Date().getTimezoneOffset(),
     };
   }
 
-  // Single geo fetch — always uses cache when fresh
-  async function getCachedLocation() {
-    const cached = localStorage.getItem(GEO_CACHE_KEY);
-    if (cached) {
+  async function getCachedGeo() {
+    const cached = localStorage.getItem(KEY_GEO);
+    const ts = parseInt(localStorage.getItem(KEY_GEO_TS) || "0", 10);
+    if (cached && Date.now() - ts < GEO_TTL) {
       try {
-        const parsed = JSON.parse(cached);
-        if (Date.now() - parsed.timestamp < GEO_CACHE_DURATION) {
-          return parsed.data;
-        }
+        return JSON.parse(cached);
       } catch {
-        // stale or corrupt cache, fall through
+        /* corrupt */
       }
     }
     try {
       const res = await fetch("https://ipapi.co/json/");
       const data = await res.json();
-      const geoData = {
+      const geo = {
         ip: data.ip,
         city: data.city,
         region: data.region,
         country: data.country_name,
-        postal: data.postal,
-        latitude: data.latitude,
-        longitude: data.longitude,
-        org: data.org,
       };
-      localStorage.setItem(
-        GEO_CACHE_KEY,
-        JSON.stringify({ timestamp: Date.now(), data: geoData }),
-      );
-      return geoData;
+      localStorage.setItem(KEY_GEO, JSON.stringify(geo));
+      localStorage.setItem(KEY_GEO_TS, String(Date.now()));
+      return geo;
     } catch {
       return null;
     }
   }
 
-  function getFeedbackUserInfo(email = "", geo = null) {
-    return {
-      browser: navigator.userAgent,
-      os: navigator.platform,
-      ip: geo?.ip || undefined,
-      location:
-        geo?.city && geo?.country ? `${geo.city}, ${geo.country}` : undefined,
-      email: email || undefined,
-    };
-  }
-
-  function getPageContext() {
-    const component =
-      document.body.getAttribute("data-component") ||
-      document.documentElement.getAttribute("data-component") ||
-      "unknown";
-    return {
-      url: window.location.href,
-      title: document.title,
-      component,
-    };
-  }
-
-  // ─── Visitor tracking ──────────────────────────────────────────────────────
-
-  async function trackVisitorSession() {
-    if (localStorage.getItem(VISITOR_TRACKED_KEY)) return;
-
+  // ── Visitor session tracking ────────────────────────────────────────────────
+  // Called once per session (not once ever).
+  // Creates a new Visitor document each session so we track return visits.
+  async function trackSession() {
     const visitorId = getOrCreateVisitorId();
-    // Reuse getCachedLocation — no second geo fetch
-    const geo = await getCachedLocation();
+    const { sessionId, sessionStart } = getOrCreateSession();
+
+    // Check if this specific session has already been tracked
+    // (handles page refreshes within the same session)
+    const KEY_SESSION_TRACKED = `fh_st_${sessionId}`;
+    if (sessionStorage.getItem(KEY_SESSION_TRACKED)) return;
+
+    const geo = await getCachedGeo();
 
     const payload = {
       siteId: SITE_ID,
       visitorId,
+      sessionId, // unique per session
       visitTimestamp: new Date().toISOString(),
-      sessionStart: getSessionStart(),
+      sessionStart,
       page: window.location.href,
       userInfo: getUserInfo(),
       country: geo?.country || "Unknown",
       region: geo?.region || "",
       city: geo?.city || "",
       pagesVisited: [
-        { url: window.location.href, timestamp: new Date().toISOString() },
+        {
+          url: window.location.href,
+          timestamp: new Date().toISOString(),
+        },
       ],
     };
 
     try {
-      await fetch(`${API_BASE}/api/visitor/track`, {
+      const res = await fetch(`${API_BASE}/api/visitor/track`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      localStorage.setItem(VISITOR_TRACKED_KEY, "true");
+      if (res.ok) {
+        // Mark this session as tracked (sessionStorage clears on tab close)
+        sessionStorage.setItem(KEY_SESSION_TRACKED, "1");
+      }
     } catch (err) {
-      console.error("FeedbackHub: visitor tracking failed", err);
+      console.error("FeedbackHub: session tracking failed", err);
     }
   }
 
+  // ── Page visit tracking ─────────────────────────────────────────────────────
+  // Appends each navigation to the current session's pagesVisited array.
   function trackPageVisit(url) {
     const visitorId = getOrCreateVisitorId();
+    const { sessionStart } = getOrCreateSession();
+
+    // Update last activity on every navigation
+    localStorage.setItem(KEY_LAST_ACTIVITY, String(Date.now()));
+
     fetch(`${API_BASE}/api/visitor/track-page-visit`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         siteId: SITE_ID,
         visitorId,
-        sessionStart: getSessionStart(),
+        sessionStart,
         page: url,
         timestamp: new Date().toISOString(),
       }),
-    }).catch((err) =>
-      console.error("FeedbackHub: page visit tracking failed", err),
-    );
+    }).catch(() => {}); // silent — don't break the host site on failure
   }
 
-  function overrideHistoryMethods() {
-    const originalPushState = history.pushState;
+  // ── SPA navigation interception ─────────────────────────────────────────────
+  function interceptNavigation() {
+    const orig_push = history.pushState.bind(history);
+    const orig_replace = history.replaceState.bind(history);
+
     history.pushState = function (...args) {
-      originalPushState.apply(this, args);
+      orig_push(...args);
       setTimeout(() => trackPageVisit(window.location.href), 0);
     };
-    const originalReplaceState = history.replaceState;
     history.replaceState = function (...args) {
-      originalReplaceState.apply(this, args);
+      orig_replace(...args);
       setTimeout(() => trackPageVisit(window.location.href), 0);
     };
     window.addEventListener("popstate", () => {
@@ -427,139 +352,135 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // ─── Widget ────────────────────────────────────────────────────────────────
+  // ── Site validation ─────────────────────────────────────────────────────────
+  async function validateSite() {
+    const ctrl = new AbortController();
+    const timeout = setTimeout(() => ctrl.abort(), 5000);
+    try {
+      const res = await fetch(`${API_BASE}/api/site/${SITE_ID}`, {
+        signal: ctrl.signal,
+      });
+      clearTimeout(timeout);
+      if (!res.ok) return { valid: false, config: null };
+      const data = await res.json();
+      return { valid: true, config: data.widgetConfig ?? null };
+    } catch {
+      clearTimeout(timeout);
+      return { valid: false, config: null };
+    }
+  }
 
-  function setupFeedbackWidget(siteValid, widgetConfig) {
+  // ── Feedback widget UI ──────────────────────────────────────────────────────
+  function buildWidget(siteValid, config) {
     const visitorId = getOrCreateVisitorId();
 
-    // Apply widget config from server (falls back to defaults)
     const cfg = {
-      buttonText: widgetConfig?.buttonText || "Feedback",
-      buttonColor: widgetConfig?.buttonColor || "#f5a623",
-      position: widgetConfig?.position || "bottom-right",
-      theme: widgetConfig?.theme || "auto",
+      buttonText: config?.buttonText || "Feedback",
+      buttonColor: config?.buttonColor || "#f5a623",
+      position: config?.position || "bottom-right",
+      theme: config?.theme || "auto",
     };
 
-    // Resolve position to CSS
-    const posStyles = {
-      "bottom-right": "bottom:24px;right:24px;",
-      "bottom-left": "bottom:24px;left:24px;",
-      "top-right": "top:24px;right:24px;",
-      "top-left": "top:24px;left:24px;",
-    };
-
-    // Resolve theme
     const prefersDark = window.matchMedia(
       "(prefers-color-scheme: dark)",
     ).matches;
     const isDark =
       cfg.theme === "dark" || (cfg.theme === "auto" && prefersDark);
 
-    // Floating button
-    const button = document.createElement("button");
-    button.className = "feedback-button";
-    button.textContent = cfg.buttonText;
-    button.setAttribute("aria-label", "Open feedback form");
-    // Apply dynamic color + position via inline style (overrides the CSS class defaults)
-    button.style.cssText = `
-      background-color:${cfg.buttonColor};
-      ${posStyles[cfg.position] || posStyles["bottom-right"]}
-    `;
-    document.body.appendChild(button);
+    // Position map
+    const pos = {
+      "bottom-right": "bottom:24px;right:24px;top:auto;left:auto;",
+      "bottom-left": "bottom:24px;left:24px;top:auto;right:auto;",
+      "top-right": "top:24px;right:24px;bottom:auto;left:auto;",
+      "top-left": "top:24px;left:24px;bottom:auto;right:auto;",
+    };
 
-    // Overlay
-    const modalContainer = document.createElement("div");
-    modalContainer.className = "feedback-modal-container";
-    modalContainer.setAttribute("role", "dialog");
-    modalContainer.setAttribute("aria-modal", "true");
-    modalContainer.setAttribute("aria-label", "Feedback form");
-    document.body.appendChild(modalContainer);
+    // Button
+    const btn = document.createElement("button");
+    btn.className = "fh-button";
+    btn.textContent = cfg.buttonText;
+    btn.setAttribute("aria-label", "Open feedback form");
+    btn.style.cssText = `background-color:${cfg.buttonColor};${pos[cfg.position] || pos["bottom-right"]}`;
+    document.body.appendChild(btn);
 
-    // Modal card
+    // Overlay + modal
+    const overlay = document.createElement("div");
+    overlay.className = "fh-overlay";
+    overlay.setAttribute("role", "dialog");
+    overlay.setAttribute("aria-modal", "true");
+    overlay.setAttribute("aria-label", "Feedback");
+    document.body.appendChild(overlay);
+
     const modal = document.createElement("div");
-    modal.className = "feedback-modal";
-    if (isDark) modal.classList.add("feedback-modal--dark");
-    modalContainer.appendChild(modal);
+    modal.className = "fh-modal" + (isDark ? " fh-dark" : "");
+    overlay.appendChild(modal);
 
-    function openModal() {
-      modalContainer.style.display = "flex";
+    function open() {
+      overlay.style.display = "flex";
       if (!siteValid) {
-        modal.innerHTML = `
-          <p class="validating-error-message">
-            Widget not configured properly. Please contact the site admin.
-          </p>`;
+        modal.innerHTML = `<div class="fh-error-banner">Widget not configured. Please contact the site admin.</div>`;
         return;
       }
-      renderFeedbackForm();
+      renderForm();
     }
 
-    function closeModal() {
-      modal.classList.add("modal-fade-out");
+    function close() {
+      modal.classList.add("fh-fadeout");
       setTimeout(() => {
-        modalContainer.style.display = "none";
-        modal.classList.remove("modal-fade-out");
+        overlay.style.display = "none";
+        modal.classList.remove("fh-fadeout");
         modal.innerHTML = "";
-      }, 350);
+      }, 300);
     }
 
-    button.addEventListener("click", openModal);
-
-    // Close on backdrop click
-    modalContainer.addEventListener("click", (e) => {
-      if (e.target === modalContainer) closeModal();
+    btn.addEventListener("click", open);
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay) close();
     });
-
-    // Close on Escape key
     document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && modalContainer.style.display === "flex") {
-        closeModal();
-      }
+      if (e.key === "Escape" && overlay.style.display === "flex") close();
     });
 
-    function renderFeedbackForm() {
+    function renderForm() {
       modal.innerHTML = `
-        <button class="btn-close" aria-label="Close feedback form">&times;</button>
+        <button class="fh-close" aria-label="Close">&times;</button>
         <h3>Share your feedback</h3>
-        <form id="fh-feedback-form" novalidate>
-
-          <div class="form-row">
-            <div class="field">
-              <label for="fb-name">Name</label>
-              <input type="text" id="fb-name" placeholder="Your name (optional)" autocomplete="name" />
-              <p class="error-msg" id="error-name" role="alert"></p>
+        <form id="fh-form" novalidate>
+          <div class="fh-row">
+            <div class="fh-field">
+              <label for="fh-name">Name</label>
+              <input type="text" id="fh-name" placeholder="Your name (optional)" autocomplete="name"/>
+              <span class="fh-err" id="fh-err-name"></span>
             </div>
-            <div class="field">
-              <label for="fb-email">Email</label>
-              <input type="email" id="fb-email" placeholder="you@example.com" autocomplete="email" />
-              <p class="error-msg" id="error-email" role="alert"></p>
+            <div class="fh-field">
+              <label for="fh-email">Email</label>
+              <input type="email" id="fh-email" placeholder="you@example.com" autocomplete="email"/>
+              <span class="fh-err" id="fh-err-email"></span>
             </div>
           </div>
-
-          <div class="field">
-            <label for="fb-title">Title <span style="color:#dc2626">*</span></label>
-            <input type="text" id="fb-title" placeholder="Brief summary..." />
-            <p class="error-msg" id="error-title" role="alert"></p>
+          <div class="fh-field">
+            <label for="fh-title">Title <span style="color:#dc2626">*</span></label>
+            <input type="text" id="fh-title" placeholder="Brief summary..."/>
+            <span class="fh-err" id="fh-err-title"></span>
           </div>
-
-          <div class="field">
-            <label for="fb-description">Description <span style="color:#dc2626">*</span></label>
-            <textarea id="fb-description" placeholder="Describe your feedback..."></textarea>
-            <p class="error-msg" id="error-description" role="alert"></p>
+          <div class="fh-field">
+            <label for="fh-desc">Description <span style="color:#dc2626">*</span></label>
+            <textarea id="fh-desc" placeholder="Describe your feedback..."></textarea>
+            <span class="fh-err" id="fh-err-desc"></span>
           </div>
-
-          <div class="form-row">
-            <div class="field">
-              <label for="fb-category">Category</label>
-              <select id="fb-category">
+          <div class="fh-row">
+            <div class="fh-field">
+              <label for="fh-cat">Category</label>
+              <select id="fh-cat">
                 <option value="other">Other</option>
                 <option value="bug">Bug</option>
                 <option value="feature">Feature request</option>
                 <option value="improvement">Improvement</option>
               </select>
             </div>
-            <div class="field">
-              <label for="fb-priority">Priority</label>
-              <select id="fb-priority">
+            <div class="fh-field">
+              <label for="fh-pri">Priority</label>
+              <select id="fh-pri">
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
                 <option value="high">High</option>
@@ -567,176 +488,137 @@ document.addEventListener("DOMContentLoaded", () => {
               </select>
             </div>
           </div>
-
-          <div class="field">
-            <label for="fb-screenshot">Screenshot (optional)</label>
-            <input type="file" id="fb-screenshot" accept="image/*" />
-          </div>
-
-          <button type="submit" class="btn-submit">Submit feedback</button>
+          <button type="submit" class="fh-submit">Submit feedback</button>
         </form>
-
-        <p class="footer-note">
+        <p class="fh-footer">
           Powered by <a href="https://feedbackhub-kappa.vercel.app" target="_blank" rel="noopener noreferrer">FeedbackHub</a>
         </p>
       `;
 
-      modal.querySelector(".btn-close").addEventListener("click", closeModal);
+      modal.querySelector(".fh-close").addEventListener("click", close);
 
-      const form = modal.querySelector("#fh-feedback-form");
-      const nameInput = form.querySelector("#fb-name");
-      const emailInput = form.querySelector("#fb-email");
-      const titleInput = form.querySelector("#fb-title");
-      const descInput = form.querySelector("#fb-description");
-      const submitBtn = form.querySelector(".btn-submit");
+      const form = modal.querySelector("#fh-form");
+      const f_name = form.querySelector("#fh-name");
+      const f_email = form.querySelector("#fh-email");
+      const f_title = form.querySelector("#fh-title");
+      const f_desc = form.querySelector("#fh-desc");
+      const f_cat = form.querySelector("#fh-cat");
+      const f_pri = form.querySelector("#fh-pri");
+      const f_sub = form.querySelector(".fh-submit");
 
-      const errorName = form.querySelector("#error-name");
-      const errorEmail = form.querySelector("#error-email");
-      const errorTitle = form.querySelector("#error-title");
-      const errorDesc = form.querySelector("#error-description");
+      const e_name = form.querySelector("#fh-err-name");
+      const e_email = form.querySelector("#fh-err-email");
+      const e_title = form.querySelector("#fh-err-title");
+      const e_desc = form.querySelector("#fh-err-desc");
 
-      const validators = {
+      const validate = {
         name: (v) =>
           !v || v.length >= 3 ? "" : "Name must be at least 3 characters.",
         email: (v) =>
-          !v
-            ? "" // email is optional
-            : !/^\S+@\S+\.\S+$/.test(v)
-              ? "Please enter a valid email address."
-              : "",
+          !v || /^\S+@\S+\.\S+$/.test(v) ? "" : "Enter a valid email address.",
         title: (v) =>
           v.length >= 5 ? "" : "Title must be at least 5 characters.",
-        description: (v) =>
+        desc: (v) =>
           v.length >= 10 ? "" : "Description must be at least 10 characters.",
       };
 
-      function toggleError(el, input, message) {
-        if (message) {
-          el.textContent = message;
-          el.classList.add("show");
-          input.style.borderColor = "#dc2626";
-        } else {
-          el.classList.remove("show");
-          input.style.borderColor = "";
-        }
+      function setErr(el, input, msg) {
+        el.textContent = msg;
+        el.classList.toggle("show", !!msg);
+        input.style.borderColor = msg ? "#dc2626" : "";
       }
 
-      // Validate on blur, clear on input
       [
-        [nameInput, errorName, "name"],
-        [emailInput, errorEmail, "email"],
-        [titleInput, errorTitle, "title"],
-        [descInput, errorDesc, "description"],
-      ].forEach(([input, errorEl, key]) => {
-        input.addEventListener("blur", () =>
-          toggleError(errorEl, input, validators[key](input.value.trim())),
+        [f_name, e_name, "name"],
+        [f_email, e_email, "email"],
+        [f_title, e_title, "title"],
+        [f_desc, e_desc, "desc"],
+      ].forEach(([inp, err, key]) => {
+        inp.addEventListener("blur", () =>
+          setErr(err, inp, validate[key](inp.value.trim())),
         );
-        input.addEventListener("input", () => toggleError(errorEl, input, ""));
+        inp.addEventListener("input", () => setErr(err, inp, ""));
       });
 
       form.addEventListener("submit", async (e) => {
         e.preventDefault();
 
-        const name = nameInput.value.trim();
-        const email = emailInput.value.trim();
-        const title = titleInput.value.trim();
-        const description = descInput.value.trim();
-        const category = form.querySelector("#fb-category").value;
-        const priority = form.querySelector("#fb-priority").value;
+        const name = f_name.value.trim();
+        const email = f_email.value.trim();
+        const title = f_title.value.trim();
+        const desc = f_desc.value.trim();
 
-        // Run all validators
-        const errors = {
-          name: validators.name(name),
-          email: validators.email(email),
-          title: validators.title(title),
-          description: validators.description(description),
+        const errs = {
+          name: validate.name(name),
+          email: validate.email(email),
+          title: validate.title(title),
+          desc: validate.desc(desc),
         };
+        setErr(e_name, f_name, errs.name);
+        setErr(e_email, f_email, errs.email);
+        setErr(e_title, f_title, errs.title);
+        setErr(e_desc, f_desc, errs.desc);
+        if (Object.values(errs).some(Boolean)) return;
 
-        toggleError(errorName, nameInput, errors.name);
-        toggleError(errorEmail, emailInput, errors.email);
-        toggleError(errorTitle, titleInput, errors.title);
-        toggleError(errorDesc, descInput, errors.description);
-
-        if (Object.values(errors).some(Boolean)) return;
-
-        // Disable form while submitting
         form
-          .querySelectorAll("input, textarea, select, button")
+          .querySelectorAll("input,textarea,select,button")
           .forEach((el) => (el.disabled = true));
-        submitBtn.textContent = "Submitting...";
+        f_sub.textContent = "Submitting...";
 
         try {
-          const geo = await getCachedLocation();
-          const userInfo = getFeedbackUserInfo(email, geo);
-          const context = getPageContext();
-
-          // Send as JSON — matches the backend feedbackSchema (req.body)
-          const payload = {
-            siteId: SITE_ID,
-            title,
-            description,
-            name: name || "Anonymous",
-            category, // fixed: was "type" — backend expects "category"
-            priority,
-            visitorId,
-            userInfo,
-            context,
+          const geo = await getCachedGeo();
+          const userInfo = {
+            browser: navigator.userAgent,
+            os: navigator.platform,
+            ip: geo?.ip || undefined,
+            location:
+              geo?.city && geo?.country
+                ? `${geo.city}, ${geo.country}`
+                : undefined,
+            email: email || undefined,
           };
 
           const res = await fetch(`${API_BASE}/api/feedback`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
+            body: JSON.stringify({
+              siteId: SITE_ID,
+              title,
+              description: desc,
+              name: name || "Anonymous",
+              category: f_cat.value,
+              priority: f_pri.value,
+              visitorId,
+              userInfo,
+            }),
           });
 
-          if (!res.ok) throw new Error(`Server error: ${res.status}`);
+          if (!res.ok) throw new Error(`${res.status}`);
 
-          modal.innerHTML = `<p class="success-msg">Thanks for your feedback! ✓</p>`;
-          setTimeout(closeModal, 1800);
-        } catch (err) {
-          console.error("FeedbackHub: submission failed", err);
-          // Re-enable form so user can retry
+          modal.innerHTML = `<div class="fh-success">Thanks for your feedback! ✓</div>`;
+          setTimeout(close, 1800);
+        } catch {
           form
-            .querySelectorAll("input, textarea, select, button")
+            .querySelectorAll("input,textarea,select,button")
             .forEach((el) => (el.disabled = false));
-          submitBtn.textContent = "Submit feedback";
-
-          const existing = modal.querySelector(".validating-error-message");
+          f_sub.textContent = "Submit feedback";
+          const existing = modal.querySelector(".fh-error-banner");
           if (!existing) {
-            const errMsg = document.createElement("p");
-            errMsg.className = "validating-error-message";
-            errMsg.textContent = "Submission failed. Please try again.";
-            form.appendChild(errMsg);
+            const banner = document.createElement("p");
+            banner.className = "fh-error-banner";
+            banner.textContent = "Submission failed. Please try again.";
+            form.after(banner);
           }
         }
       });
     }
   }
 
-  // ─── Validate site ID once on load, then boot ──────────────────────────────
-
-  // Returns { valid: boolean, widgetConfig: object|null }
-  async function validateSite() {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000);
-    try {
-      const res = await fetch(`${API_BASE}/api/site/${SITE_ID}`, {
-        signal: controller.signal,
-      });
-      clearTimeout(timeout);
-      if (!res.ok) return { valid: false, widgetConfig: null };
-      const data = await res.json();
-      return { valid: true, widgetConfig: data.widgetConfig ?? null };
-    } catch {
-      clearTimeout(timeout);
-      return { valid: false, widgetConfig: null };
-    }
-  }
-
+  // ── Boot sequence ───────────────────────────────────────────────────────────
   (async () => {
-    const { valid, widgetConfig } = await validateSite();
-    await trackVisitorSession();
-    overrideHistoryMethods();
-    setupFeedbackWidget(valid, widgetConfig);
+    const { valid, config } = await validateSite();
+    await trackSession(); // creates a new session doc for each visit
+    interceptNavigation(); // tracks SPA page changes
+    buildWidget(valid, config); // mounts the feedback button + modal
   })();
 });

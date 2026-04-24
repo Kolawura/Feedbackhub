@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { Feedback } from "../Type";
 
 export const useFeedbackAnalytics = (
-  feedbacks: Feedback[],
+  feedbacks: Feedback[] | undefined,
   analytics: any,
   visitorData: any,
   c: any,
@@ -36,13 +36,64 @@ export const useFeedbackAnalytics = (
   const topLocations = useMemo(() => {
     const m: Record<string, number> = {};
     feedbacks?.forEach((f) => {
-      const loc = f.userInfo?.location;
-      if (loc) m[loc] = (m[loc] ?? 0) + 1;
+      if (f.userInfo?.location)
+        m[f.userInfo.location] = (m[f.userInfo.location] ?? 0) + 1;
     });
     return Object.entries(m)
       .sort((a, b) => b[1] - a[1])
-      .slice(0, 5);
+      .slice(0, 6);
   }, [feedbacks]);
+
+  const total = feedbacks?.length || 1;
+
+  const trendData = {
+    labels: analytics?.labels ?? [],
+    datasets: [
+      {
+        label: "Feedback",
+        data: analytics?.trend ?? [],
+        borderColor: c.amber,
+        backgroundColor: c.amberAlpha,
+        tension: 0.4,
+        borderWidth: 1.5,
+        pointRadius: 3,
+        pointBackgroundColor: c.amber,
+        fill: true,
+      },
+    ],
+  };
+  const catData = {
+    labels: ["Bug", "Feature", "Improvement", "Other"],
+    datasets: [
+      {
+        data: [
+          categoryCount.bug,
+          categoryCount.feature,
+          categoryCount.improvement,
+          categoryCount.other,
+        ],
+        backgroundColor: [c.red, c.blue, c.green, c.muted],
+        borderWidth: 0,
+        hoverOffset: 8,
+      },
+    ],
+  };
+  const priData = {
+    labels: ["Critical", "High", "Medium", "Low"],
+    datasets: [
+      {
+        data: [
+          priorityCount.critical,
+          priorityCount.high,
+          priorityCount.medium,
+          priorityCount.low,
+        ],
+        backgroundColor: [c.red, "#e07852", c.amber, c.green],
+        borderWidth: 0,
+        hoverOffset: 8,
+      },
+    ],
+  };
 
   const topBrowsers = useMemo(() => {
     const m: Record<string, number> = {};
@@ -143,5 +194,15 @@ export const useFeedbackAnalytics = (
     };
   }, [analytics, visitorData, categoryCount, priorityCount, topBrowsers, c]);
 
-  return { categoryCount, topLocations, topBrowsers, chartData };
+  return {
+    categoryCount,
+    priorityCount,
+    topLocations,
+    topBrowsers,
+    total,
+    trendData,
+    catData,
+    priData,
+    chartData,
+  };
 };

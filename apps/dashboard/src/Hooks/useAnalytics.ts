@@ -32,3 +32,18 @@ export const useVisitorsAnalytics = (siteId: string | null, range: string) => {
     placeholderData: keepPreviousData,
   });
 };
+
+export const useVisitorInsights = (siteId: string | null) => {
+  return useQuery({
+    queryKey: ["visitorInsights", siteId ?? "all"],
+    queryFn: async () => {
+      const url = siteId
+        ? `/api/visitor/insights/${siteId}`
+        : `/api/visitor/insights`;
+      const res = await api.get(url);
+      if (!res.data.success) throw new Error(res.data.message);
+      return res.data.data;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+};

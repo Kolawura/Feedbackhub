@@ -5,7 +5,7 @@ import { Feedback } from "../Type";
 import LoadingPage from "./LoadingPage";
 import ErrorPage from "./ErrorPage";
 import toast from "react-hot-toast";
-import { useFilter } from "../Hooks/useFilter";
+import { useFeedbackFilter } from "../Hooks/useFeedbackFilter";
 import {
   categoryDot,
   categoryStyle,
@@ -31,7 +31,7 @@ const FeedbackPage = () => {
     searchTerm,
     priorityFilter,
     categoryFilter,
-  } = useFilter();
+  } = useFeedbackFilter();
 
   if (error) toast.error(error.message);
   if (isLoading) return <LoadingPage />;

@@ -279,3 +279,290 @@ export const getAnalytics = async (
       .json({ success: false, message: "Failed to fetch analytics" });
   }
 };
+
+// GET /api/visitor/insights/:siteId  (or without siteId for all)
+// Returns: top pages, top countries, device breakdown, avg session duration,
+//          returning vs new visitors, top languages
+export const getVisitorInsights = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  if (!req.admin) {
+    res.status(401).json({ success: false, message: "Unauthorized" });
+    return;
+  }
+
+  const { siteId } = req.params;
+  const siteIds = siteId ? [siteId] : req.admin.AdminSite.map((s) => s.siteId);
+
+  if (siteIds.length === 0) {
+    res.status(200).json({ success: true, data: {} });
+    return;
+  }
+
+  try {
+    const [
+      topPages,
+      topCountries,
+      topCities,
+      deviceBreakdown,
+      languageBreakdown,
+      screenSizes,
+      returningVsNew,
+      avgSessionDuration,
+    ] = await Promise.all([
+      // Top pages visited across all sessions
+      Visitor.aggregate([
+        { $match: { siteId: { $in: siteIds } } },
+        { $unwind: "$pagesVisited" },
+        {
+          $group: {
+            _id: "$pagesVisited.url",
+            views: { $sum: 1 },
+          },
+        },
+        { $sort: { views: -1 } },
+        { $limit: 10 },
+        { $project: { _id: 0, url: "$_id", views: 1 } },
+      ]),
+
+      // Top countries
+      Visitor.aggregate([
+        {
+          $match: {
+            siteId: { $in: siteIds },
+            country: { $exists: true, $ne: "Unknown" },
+          },
+        },
+        { $group: { _id: "$country", visitors: { $sum: 1 } } },
+        { $sort: { visitors: -1 } },
+        { $limit: 10 },
+        { $project: { _id: 0, country: "$_id", visitors: 1 } },
+      ]),
+
+      // Top cities
+      Visitor.aggregate([
+        {
+          $match: {
+            siteId: { $in: siteIds },
+            city: { $exists: true, $ne: "" },
+          },
+        },
+        {
+          $group: {
+            _id: { city: "$city", country: "$country" },
+            visitors: { $sum: 1 },
+          },
+        },
+        { $sort: { visitors: -1 } },
+        { $limit: 8 },
+        {
+          $project: {
+            _id: 0,
+            city: "$_id.city",
+            country: "$_id.country",
+            visitors: 1,
+          },
+        },
+      ]),
+
+      // Device / platform breakdown
+      Visitor.aggregate([
+        {
+          $match: {
+            siteId: { $in: siteIds },
+            "userInfo.platform": { $exists: true },
+          },
+        },
+        {
+          $group: {
+            _id: {
+              $switch: {
+                branches: [
+                  {
+                    case: {
+                      $regexMatch: {
+                        input: "$userInfo.platform",
+                        regex: /android/i,
+                      },
+                    },
+                    then: "Android",
+                  },
+                  {
+                    case: {
+                      $regexMatch: {
+                        input: "$userInfo.platform",
+                        regex: /iphone|ipad|ios/i,
+                      },
+                    },
+                    then: "iOS",
+                  },
+                  {
+                    case: {
+                      $regexMatch: {
+                        input: "$userInfo.platform",
+                        regex: /win/i,
+                      },
+                    },
+                    then: "Windows",
+                  },
+                  {
+                    case: {
+                      $regexMatch: {
+                        input: "$userInfo.platform",
+                        regex: /mac/i,
+                      },
+                    },
+                    then: "macOS",
+                  },
+                  {
+                    case: {
+                      $regexMatch: {
+                        input: "$userInfo.platform",
+                        regex: /linux/i,
+                      },
+                    },
+                    then: "Linux",
+                  },
+                ],
+                default: "Other",
+              },
+            },
+            count: { $sum: 1 },
+          },
+        },
+        { $sort: { count: -1 } },
+        { $project: { _id: 0, platform: "$_id", count: 1 } },
+      ]),
+
+      // Top languages
+      Visitor.aggregate([
+        {
+          $match: {
+            siteId: { $in: siteIds },
+            "userInfo.language": { $exists: true },
+          },
+        },
+        { $group: { _id: "$userInfo.language", count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+        { $limit: 8 },
+        { $project: { _id: 0, language: "$_id", count: 1 } },
+      ]),
+
+      // Screen size buckets (mobile / tablet / desktop)
+      Visitor.aggregate([
+        {
+          $match: {
+            siteId: { $in: siteIds },
+            "userInfo.screenWidth": { $exists: true },
+          },
+        },
+        {
+          $group: {
+            _id: {
+              $switch: {
+                branches: [
+                  {
+                    case: { $lte: ["$userInfo.screenWidth", 768] },
+                    then: "Mobile",
+                  },
+                  {
+                    case: { $lte: ["$userInfo.screenWidth", 1280] },
+                    then: "Tablet",
+                  },
+                ],
+                default: "Desktop",
+              },
+            },
+            count: { $sum: 1 },
+          },
+        },
+        { $sort: { count: -1 } },
+        { $project: { _id: 0, device: "$_id", count: 1 } },
+      ]),
+
+      // Returning vs new visitors
+      // A visitor is "returning" if they have more than 1 session document
+      Visitor.aggregate([
+        { $match: { siteId: { $in: siteIds } } },
+        { $group: { _id: "$visitorId", sessions: { $sum: 1 } } },
+        {
+          $group: {
+            _id: null,
+            newVisitors: { $sum: { $cond: [{ $eq: ["$sessions", 1] }, 1, 0] } },
+            returningVisitors: {
+              $sum: { $cond: [{ $gt: ["$sessions", 1] }, 1, 0] },
+            },
+          },
+        },
+        { $project: { _id: 0, newVisitors: 1, returningVisitors: 1 } },
+      ]),
+
+      // Average session duration in seconds
+      // Session duration = last pagesVisited timestamp - sessionStart
+      Visitor.aggregate([
+        {
+          $match: {
+            siteId: { $in: siteIds },
+            "pagesVisited.0": { $exists: true },
+          },
+        },
+        {
+          $project: {
+            durationSeconds: {
+              $divide: [
+                {
+                  $subtract: [
+                    { $arrayElemAt: ["$pagesVisited.timestamp", -1] },
+                    "$sessionStart",
+                  ],
+                },
+                1000,
+              ],
+            },
+          },
+        },
+        { $match: { durationSeconds: { $gt: 0, $lt: 3600 } } }, // exclude bots / outliers > 1hr
+        {
+          $group: {
+            _id: null,
+            avgDuration: { $avg: "$durationSeconds" },
+            totalSessions: { $sum: 1 },
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            avgDuration: { $round: ["$avgDuration", 0] },
+            totalSessions: 1,
+          },
+        },
+      ]),
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        topPages,
+        topCountries,
+        topCities,
+        deviceBreakdown,
+        languageBreakdown,
+        screenSizes,
+        returningVsNew: returningVsNew[0] ?? {
+          newVisitors: 0,
+          returningVisitors: 0,
+        },
+        avgSessionDuration: avgSessionDuration[0] ?? {
+          avgDuration: 0,
+          totalSessions: 0,
+        },
+      },
+    });
+  } catch (error) {
+    console.error("Visitor insights error:", error);
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to fetch visitor insights" });
+  }
+};

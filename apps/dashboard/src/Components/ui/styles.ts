@@ -46,6 +46,5 @@ export function useChartColors() {
     tooltipText: dark ? "#e8e6e0" : "#1a1a1b",
     tooltipBorder: dark ? "#2a2a2e" : "#dddbd3",
     border: dark ? "#2a2a2e" : "#dddbd3",
-    surface: dark ? "#161618" : "#ffffff",
   };
 }

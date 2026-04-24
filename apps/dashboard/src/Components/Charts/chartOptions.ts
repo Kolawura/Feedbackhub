@@ -11,7 +11,6 @@ export const chartOptions = (c: {
   tooltipText: string;
   tooltipBorder: string;
   border: string;
-  surface: string;
 }) => {
   const tooltipPlugin = {
     backgroundColor: c.tooltipBg,
@@ -71,5 +70,10 @@ export const chartOptions = (c: {
       tooltip: tooltipPlugin,
     },
   };
-  return { lineOptions, barOptions, doughnutOptions };
+
+  return {
+    lineOptions,
+    barOptions,
+    doughnutOptions,
+  };
 };

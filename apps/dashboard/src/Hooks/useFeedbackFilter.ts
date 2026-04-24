@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useFeedbacks } from "./useFeedback";
 import { useSites } from "./useSite";
 import { useSiteStore } from "../Store/useSiteStore";
-export const useFilter = () => {
+export const useFeedbackFilter = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [priorityFilter, setPriority] = useState("all");
   const [categoryFilter, setCategory] = useState("all");
