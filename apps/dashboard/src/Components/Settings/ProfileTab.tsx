@@ -1,4 +1,4 @@
-import { EyeOff, Eye } from "lucide-react";
+import { EyeOff, Eye, Monitor, Moon, Sun } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { useAuth } from "../../Hooks/useAuth";
@@ -6,6 +6,7 @@ import { api } from "../../lib/axios";
 import { Card } from "../ui/Card";
 import { labelClass, inputClass } from "../ui/styles";
 import { SectionHeader, SaveButton } from "../ui/SettingsUi";
+import { useThemeStore } from "../../Store/useThemeStore";
 
 export const ProfileTab = () => {
   const { user } = useAuth();
@@ -20,6 +21,7 @@ export const ProfileTab = () => {
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { theme, isSystemDefault, setTheme, resetToSystem } = useThemeStore();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -147,6 +149,54 @@ export const ProfileTab = () => {
           <SaveButton loading={loading} />
         </div>
       </form>
+      {/* Theme preference */}
+      <div className="border-t border-[var(--border)] pt-5 mt-2">
+        <p className="font-mono text-xs text-[var(--text-dim)] uppercase tracking-widest mb-4">
+          Appearance
+        </p>
+        <div className="flex items-center gap-2 flex-wrap">
+          {(["light", "dark"] as const).map((t) => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => setTheme(t)}
+              className={`flex items-center gap-2 px-4 py-2.5 font-mono text-xs border transition-colors capitalize ${
+                theme === t && !isSystemDefault
+                  ? "border-[var(--amber)] text-[var(--amber)] bg-[var(--amber-bg)]"
+                  : "border-[var(--border)] text-[var(--text-muted)] hover:border-[var(--border-light)] hover:text-[var(--text)]"
+              }`}
+            >
+              {t === "dark" ? <Moon size={12} /> : <Sun size={12} />}
+              {t}
+            </button>
+          ))}
+          <button
+            type="button"
+            onClick={resetToSystem}
+            className={`flex items-center gap-2 px-4 py-2.5 font-mono text-xs border transition-colors ${
+              isSystemDefault
+                ? "border-[var(--amber)] text-[var(--amber)] bg-[var(--amber-bg)]"
+                : "border-[var(--border)] text-[var(--text-muted)] hover:border-[var(--border-light)] hover:text-[var(--text)]"
+            }`}
+          >
+            <Monitor size={12} />
+            System
+          </button>
+        </div>
+        <p className="font-mono text-xs text-[var(--text-dim)] mt-3">
+          {isSystemDefault ? (
+            <>
+              Following your OS — currently{" "}
+              <span className="text-[var(--amber)]">{theme}</span>
+            </>
+          ) : (
+            <>
+              You have set <span className="text-[var(--amber)]">{theme}</span>{" "}
+              mode manually
+            </>
+          )}
+        </p>
+      </div>
     </Card>
   );
 };

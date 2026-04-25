@@ -1,128 +1,80 @@
-"use client";
+import { useState, useRef, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { links } from "../Bars/NavLinks";
+import { ChevronDown } from "lucide-react";
 
-import React, { ReactElement, useState } from "react";
-
-interface SelectProps {
-  value: string;
-  onValueChange: (value: string) => void;
-  children: React.ReactNode;
-}
-
-interface SelectTriggerProps {
-  children: React.ReactNode;
-  className?: string;
-}
-
-interface SelectContentProps {
-  children: React.ReactNode;
-}
-
-interface SelectItemProps {
-  value: string;
-  children: React.ReactNode;
-  onSelect?: (value: string) => void;
-  isSelected?: boolean;
-}
-
-interface SelectValueProps {
+export const Select = ({
+  placeholder = "Select page",
+}: {
   placeholder?: string;
-}
-
-export const Select: React.FC<SelectProps> = ({
-  value,
-  onValueChange,
-  children,
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [selected, setSelected] = useState<(typeof links)[0] | null>(null);
+
+  const navigate = useNavigate();
+  const location = useLocation();
+  const ref = useRef<HTMLDivElement>(null);
+
+  // Sync with route
+  useEffect(() => {
+    const match = links.find((link) => location.pathname.startsWith(link.path));
+    setSelected(match || null);
+  }, [location.pathname]);
+
+  // Close on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleSelect = (link: (typeof links)[0]) => {
+    setSelected(link);
+    setOpen(false);
+    navigate(link.path);
+  };
 
   return (
-    <div className="relative bg-gray-50 dark:bg-gray-900">
-      {React.Children.map(children, (child) => {
-        if (React.isValidElement(child)) {
-          if (child.type === SelectTrigger) {
-            return React.cloneElement(child, {
-              onClick: () => setIsOpen(!isOpen),
-              isOpen,
-            } as any);
-          }
-          if (child.type === SelectContent) {
-            return isOpen
-              ? React.cloneElement(child, {
-                  onSelect: (selectedValue: string) => {
-                    onValueChange(selectedValue);
-                    setIsOpen(false);
-                  },
-                  currentValue: value,
-                } as any)
-              : null;
-          }
-        }
-        return child;
-      })}
+    <div ref={ref} className="relative w-48 text-xs font-mono">
+      {/* Trigger */}
+      <button
+        onClick={() => setOpen((prev) => !prev)}
+        className="w-full flex items-center justify-between px-3 py-2 bg-[var(--bg)] border border-[var(--border)] focus:outline-none focus:border-[var(--amber)] text-[var(--text)] hover:border-[var(--amber)] transition-colors"
+      >
+        <span className="flex items-center gap-2">
+          {selected?.icon}
+          {selected?.name || placeholder}
+        </span>
+        <ChevronDown
+          size={14}
+          className={`transition-transform ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+
+      {/* Dropdown */}
+      {open && (
+        <div className="absolute mt-1 w-full bg-[var(--bg)] border border-[var(--border)]  shadow-lg z-50">
+          {links.map((link) => (
+            <button
+              key={link.path}
+              onClick={() => handleSelect(link)}
+              className={`w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-[var(--border)] transition-colors ${
+                selected?.path === link.path
+                  ? "text-[var(--amber)]"
+                  : "text-[var(--text)]"
+              }`}
+            >
+              {link.icon}
+              {link.name}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
-
-export const SelectTrigger: React.FC<
-  SelectTriggerProps & { onClick?: () => void; isOpen?: boolean }
-> = ({ children, className = "", onClick, isOpen }) => (
-  <button
-    type="button"
-    onClick={onClick}
-    className={`flex h-10 w-full items-center justify-between rounded-md bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 px-3 py-2 text-sm placeholder:text-gray-500 dark:placeholder:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
-  >
-    {children}
-    <svg
-      className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`}
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M19 9l-7 7-7-7"
-      />
-    </svg>
-  </button>
-);
-
-export const SelectContent: React.FC<
-  SelectContentProps & {
-    onSelect?: (value: string) => void;
-    currentValue?: string;
-  }
-> = ({ children, onSelect, currentValue }) => (
-  <div className="absolute top-full left-0 right-0 z-1 mt-1 max-h-60 overflow-auto rounded-md bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 shadow-lg">
-    {React.Children.map(children, (child) => {
-      if (
-        React.isValidElement<SelectItemProps>(child) &&
-        child.type === SelectItem
-      ) {
-        return React.cloneElement(child, {
-          onSelect,
-          isSelected: child.props.value === currentValue,
-        });
-      }
-      return child;
-    })}
-  </div>
-);
-
-export const SelectItem: React.FC<
-  SelectItemProps & { onSelect?: (value: string) => void; isSelected?: boolean }
-> = ({ value, children, onSelect, isSelected }) => (
-  <div
-    className={`cursor-pointer px-3 py-2 text-sm bg-white dark:bg-white/3 hover:bg-gray-100 dark:hover:bg-gray-900 ${
-      isSelected ? "bg-blue-50 text-blue-600" : ""
-    }`}
-    onClick={() => onSelect?.(value)}
-  >
-    {children}
-  </div>
-);
-
-export const SelectValue: React.FC<SelectValueProps> = ({ placeholder }) => (
-  <span className="text-gray-500">{placeholder}</span>
-);

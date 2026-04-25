@@ -25,7 +25,7 @@ const App = () => {
   const [isHover, setIsHover] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const { theme } = useThemeStore();
+  const { theme, isSystemDefault, setSystemTheme } = useThemeStore();
   const { loading, error } = useAuth();
 
   console.log("BASE URL:", import.meta.env.VITE_API_BASE_URL);
@@ -37,6 +37,18 @@ const App = () => {
       document.documentElement.classList.remove("dark");
     }
   }, [theme]);
+
+  useEffect(() => {
+    // If the user hasn't set a preference, follow the OS in real time.
+    // This means if they switch their OS from light to dark, the app follows.
+    if (!isSystemDefault) return;
+    const handleSystemThemeChange = (e: MediaQueryListEvent) => {
+      setSystemTheme(e.matches ? "dark" : "light");
+    };
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    mq.addEventListener("change", handleSystemThemeChange);
+    return () => mq.removeEventListener("change", handleSystemThemeChange);
+  }, [isSystemDefault, setSystemTheme]);
 
   const handleMouseEnter = () => {
     if (timeoutRef.current) {
@@ -78,8 +90,6 @@ const App = () => {
                 Expand={Expand}
                 isCollapsed={isCollapsed}
                 setIsCollapsed={setIsCollapsed}
-                handleMouseEnter={handleMouseEnter}
-                handleMouseLeave={handleMouseLeave}
               />
             }
           >

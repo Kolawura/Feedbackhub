@@ -1,5 +1,7 @@
 import {
   ChartNoAxesCombined,
+  Code2,
+  Home,
   LayoutDashboard,
   LogOut,
   MessageSquare,
@@ -9,15 +11,16 @@ import { Link, useLocation } from "react-router-dom";
 import { SidebarProps } from "../../Type";
 import { useAuth } from "../../Hooks/useAuth";
 
-const Sidebar = ({
-  handleMouseEnter,
-  handleMouseLeave,
-  Expand,
-}: SidebarProps) => {
+const Sidebar = ({ Expand }: SidebarProps) => {
   const location = useLocation();
   const { user, logout } = useAuth();
 
   const links = [
+    {
+      name: "Home",
+      path: "/",
+      icon: <Home size={18} />,
+    },
     {
       name: "Dashboard",
       path: "/dashboard",
@@ -33,19 +36,26 @@ const Sidebar = ({
       path: "/analytics",
       icon: <ChartNoAxesCombined size={18} />,
     },
+    {
+      name: "WidgetSetUp",
+      path: "/setup",
+      icon: <Code2 size={18} />,
+    },
     { name: "Settings", path: "/settings", icon: <Settings size={18} /> },
   ];
 
   return (
     // Hidden on mobile (< md). On md+ always visible, width controlled by Expand.
     <aside
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
+      // onMouseEnter={handleMouseEnter}
+      // onMouseLeave={handleMouseLeave}
       style={{ width: Expand ? "224px" : "64px" }}
       className="hidden md:flex flex-col fixed top-0 left-0 h-screen z-40 transition-all duration-200 overflow-hidden bg-[var(--bg-surface)] border-r border-[var(--border)]"
     >
       {/* Logo */}
-      <div className="flex items-center h-14 px-4 border-b border-[var(--border)] flex-shrink-0">
+      <div
+        className={`flex ${Expand ? "justify-start" : "justify-center"} items-center h-14 px-4 border-b border-[var(--border)] flex-shrink-0`}
+      >
         <span className="text-[var(--amber)] font-mono text-sm flex-shrink-0">
           ◆
         </span>

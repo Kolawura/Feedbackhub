@@ -18,16 +18,12 @@ interface DashboardRouteProps {
   Expand: boolean;
   isCollapsed: boolean;
   setIsCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
-  handleMouseEnter: () => void;
-  handleMouseLeave: () => void;
 }
 
 export const DashboardRoute = ({
   Expand,
   isCollapsed,
   setIsCollapsed,
-  handleMouseEnter,
-  handleMouseLeave,
 }: DashboardRouteProps) => {
   const isMd = useIsMd();
 
@@ -37,12 +33,7 @@ export const DashboardRoute = ({
 
   return (
     <div className="min-h-screen bg-[var(--bg)] font-serif overflow-x-hidden">
-      <Sidebar
-        isCollapsed={isCollapsed}
-        handleMouseEnter={handleMouseEnter}
-        handleMouseLeave={handleMouseLeave}
-        Expand={Expand}
-      />
+      <Sidebar isCollapsed={isCollapsed} Expand={Expand} />
       <main
         className="transition-all duration-200 overflow-x-hidden"
         style={{ marginLeft: mainMargin }}

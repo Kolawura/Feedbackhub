@@ -2,8 +2,8 @@ import { ButtonHTMLAttributes, ReactNode } from "react";
 
 export type SidebarProps = {
   isCollapsed: boolean;
-  handleMouseEnter: () => void;
-  handleMouseLeave: () => void;
+  // handleMouseEnter: () => void;
+  // handleMouseLeave: () => void;
   Expand: boolean;
 };
 

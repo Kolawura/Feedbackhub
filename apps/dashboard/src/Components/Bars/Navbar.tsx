@@ -11,11 +11,14 @@ import {
   ChartNoAxesCombined,
   Settings,
   LogOut,
+  Home,
+  Code2,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { NavbarProps } from "../../Type";
 import { useThemeStore } from "../../Store/useThemeStore";
 import { useAuth } from "../../Hooks/useAuth";
+import { NavLinks } from "./NavLinks";
 
 export default function Navbar({
   isCollapsed,
@@ -23,29 +26,10 @@ export default function Navbar({
   className,
   NavWidth,
 }: NavbarProps) {
-  const { theme, toggleTheme } = useThemeStore();
-  const { user, logout } = useAuth();
-  const location = useLocation();
+  const { theme, toggleTheme, resetToSystem, isSystemDefault } =
+    useThemeStore();
+  const { user } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  const links = [
-    {
-      name: "Dashboard",
-      path: "/dashboard",
-      icon: <LayoutDashboard size={16} />,
-    },
-    {
-      name: "Feedbacks",
-      path: "/feedbacks",
-      icon: <MessageSquare size={16} />,
-    },
-    {
-      name: "Analytics",
-      path: "/analytics",
-      icon: <ChartNoAxesCombined size={16} />,
-    },
-    { name: "Settings", path: "/settings", icon: <Settings size={16} /> },
-  ];
 
   return (
     <>
@@ -65,9 +49,12 @@ export default function Navbar({
           </button>
 
           {/* Mobile: logo */}
-          <span className="md:hidden font-mono text-xs text-[var(--amber)] tracking-[0.2em] uppercase font-bold">
+          <Link
+            to={"/"}
+            className="md:hidden font-mono text-xs text-[var(--amber)] tracking-[0.2em] uppercase font-bold"
+          >
             ◆ FeedbackHub
-          </span>
+          </Link>
 
           {/* Desktop: search */}
           <div className="hidden lg:flex items-center gap-2 border border-[var(--border)] bg-[var(--bg)] px-3 py-1.5">
@@ -83,13 +70,28 @@ export default function Navbar({
         {/* Right side */}
         <div className="flex items-center gap-2">
           {/* Theme toggle */}
-          <button
-            onClick={toggleTheme}
-            className="text-[var(--text-dim)] hover:text-[var(--amber)] transition-colors p-1.5"
-            aria-label="Toggle theme"
-          >
-            {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
-          </button>
+          <div className="flex items-center gap-1">
+            {/* If user has overridden the system theme, show a reset option */}
+            {!isSystemDefault && (
+              <button
+                onClick={resetToSystem}
+                title="Reset to system theme"
+                className="text-[var(--text-dim)] hover:text-[var(--amber)] transition-colors p-1.5 font-mono text-xs"
+              >
+                Auto
+              </button>
+            )}
+            <button
+              onClick={toggleTheme}
+              className="text-[var(--text-dim)] hover:text-[var(--amber)] transition-colors p-1.5"
+              aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+              title={
+                isSystemDefault ? "Following system theme" : `${theme} mode`
+              }
+            >
+              {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+            </button>
+          </div>
 
           {/* User avatar — desktop */}
           <div className="hidden md:flex items-center gap-2 border-l border-[var(--border)] pl-3">
@@ -116,62 +118,7 @@ export default function Navbar({
       </nav>
 
       {/* ── Mobile dropdown menu ─────────────────────────────────────────── */}
-      {mobileMenuOpen && (
-        <div
-          className="md:hidden fixed top-14 left-0 right-0 z-20 bg-[var(--bg-surface)] border-b border-[var(--border)] shadow-lg"
-          onClick={() => setMobileMenuOpen(false)}
-        >
-          {/* User info */}
-          <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--border)]">
-            <div className="w-8 h-8 bg-[var(--amber-bg)] border border-[var(--amber-border)] flex items-center justify-center flex-shrink-0">
-              <span className="font-mono text-xs font-bold text-[var(--amber)]">
-                {user?.firstName?.charAt(0)}
-                {user?.lastName?.charAt(0)}
-              </span>
-            </div>
-            <div>
-              <p className="font-mono text-xs text-[var(--text)]">
-                {user?.firstName} {user?.lastName}
-              </p>
-              <p className="font-mono text-xs text-[var(--text-dim)]">
-                @{user?.username}
-              </p>
-            </div>
-          </div>
-
-          {/* Nav links */}
-          <nav className="py-2">
-            {links.map((link) => {
-              const isActive = location.pathname === link.path;
-              return (
-                <Link
-                  key={link.name}
-                  to={link.path}
-                  className={`flex items-center gap-3 px-5 py-3 font-mono text-xs uppercase tracking-widest transition-colors ${
-                    isActive
-                      ? "text-[var(--amber)] bg-[var(--amber-bg)]"
-                      : "text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--bg-hover)]"
-                  }`}
-                >
-                  <span>{link.icon}</span>
-                  {link.name}
-                </Link>
-              );
-            })}
-          </nav>
-
-          {/* Logout */}
-          <div className="border-t border-[var(--border)] py-2">
-            <button
-              onClick={() => logout()}
-              className="flex items-center gap-3 w-full px-5 py-3 font-mono text-xs uppercase tracking-widest text-[var(--text-dim)] hover:text-[var(--red)] hover:bg-[var(--red-bg)] transition-colors"
-            >
-              <LogOut size={16} />
-              Logout
-            </button>
-          </div>
-        </div>
-      )}
+      {mobileMenuOpen && <NavLinks setMobileMenuOpen={setMobileMenuOpen} />}
     </>
   );
 }
