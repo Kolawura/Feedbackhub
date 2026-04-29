@@ -1,47 +1,42 @@
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
+import bcrypt from "bcryptjs";
 import Admin from "../models/adminModels.js";
 import { loginSchema, registerSchema } from "../schema/authSchema.js";
-import bcrypt from "bcryptjs";
+import {
+  sendVerificationEmail,
+  sendPasswordResetEmail,
+} from "../utils/email.js";
+import {
+  generateTokens,
+  setTokenCookies,
+  clearTokenCookies,
+} from "../utils/token.js";
 
-const isProduction = process.env.NODE_ENV === "production";
-
-// Generate JWT token
-const generateTokens = (adminId: string) => {
-  const secret = process.env.JWT_SECRET!;
-  const refreshSecret = process.env.JWT_REFRESH_SECRET!;
-
-  const accessToken = jwt.sign({ id: adminId }, secret, { expiresIn: "24h" });
-  const refreshToken = jwt.sign({ id: adminId }, refreshSecret, {
-    expiresIn: "7d",
-  });
-
-  return { accessToken, refreshToken };
-};
-
-// @desc    Register new admin
-// @route   POST /api/auth/register
-// @access  Public
+// ─── Register ─────────────────────────────────────────────────────────────────
+// @route POST /api/auth/register
 export const registerAdmin = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
-  const validateAuth = registerSchema.safeParse(req.body);
-
-  if (!validateAuth.success) {
+  const parsed = registerSchema.safeParse(req.body);
+  if (!parsed.success) {
     res.status(400).json({
       success: false,
       message: "Invalid input",
-      errors: validateAuth.error.flatten().fieldErrors,
+      errors: parsed.error.flatten().fieldErrors,
     });
     return;
   }
 
-  const { firstName, lastName, email, username, password } = validateAuth.data;
+  const { firstName, lastName, email, username, password } = parsed.data;
 
   try {
-    const usernameExists = await Admin.findOne({ username });
-    const emailExists = await Admin.findOne({ email });
+    const [usernameExists, emailExists] = await Promise.all([
+      Admin.findOne({ username }),
+      Admin.findOne({ email }),
+    ]);
 
     if (usernameExists || emailExists) {
       res.status(400).json({
@@ -53,71 +48,162 @@ export const registerAdmin = async (
       return;
     }
 
+    // Generate a secure random verification token
+    const verificationToken = crypto.randomBytes(32).toString("hex");
+    const verificationExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h
+
     const newAdmin = await Admin.create({
       firstName,
       lastName,
       username,
       email,
       password,
+      emailVerified: false,
+      verificationToken,
+      verificationExpiry,
+      refreshTokenVersion: 0,
     });
 
-    const { accessToken, refreshToken } = generateTokens(
-      newAdmin._id.toString(),
+    // Send verification email (non-blocking — don't fail registration if email fails)
+    sendVerificationEmail(email, firstName, verificationToken).catch((err) =>
+      console.error("Verification email failed:", err),
     );
 
-    res.cookie("accessToken", accessToken, {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: isProduction ? "none" : "lax",
-      maxAge: 24 * 60 * 60 * 1000,
-    });
-
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: isProduction ? "none" : "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    // Issue tokens — user can use the app before verifying email,
+    // but certain actions can be gated on emailVerified if needed
+    const { accessToken, refreshToken } = generateTokens(
+      newAdmin._id.toString(),
+      newAdmin.refreshTokenVersion,
+    );
+    setTokenCookies(res, accessToken, refreshToken);
 
     res.status(201).json({
       success: true,
-      message: "Admin registered successfully",
+      message: "Registered successfully. Please verify your email.",
       data: {
         _id: newAdmin._id,
         firstName: newAdmin.firstName,
         lastName: newAdmin.lastName,
         username: newAdmin.username,
         email: newAdmin.email,
+        emailVerified: newAdmin.emailVerified,
       },
     });
   } catch (error) {
     console.error("Registration error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Network or Server error during registration",
-    });
+    res
+      .status(500)
+      .json({ success: false, message: "Server error during registration" });
   }
 };
 
-// @desc    Admin login
-// @route   POST /api/auth/login
-// @access  Public
+// ─── Verify email ─────────────────────────────────────────────────────────────
+// @route GET /api/auth/verify-email?token=xxx
+export const verifyEmail = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  const { token } = req.query;
+
+  if (!token || typeof token !== "string") {
+    res.status(400).json({ success: false, message: "Invalid token" });
+    return;
+  }
+
+  try {
+    const admin = await Admin.findOne({
+      verificationToken: token,
+      verificationExpiry: { $gt: new Date() }, // not expired
+    });
+
+    if (!admin) {
+      res.status(400).json({
+        success: false,
+        message: "Verification link is invalid or has expired.",
+      });
+      return;
+    }
+
+    admin.emailVerified = true;
+    admin.verificationToken = null;
+    admin.verificationExpiry = null;
+    await admin.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Email verified successfully. You can now sign in.",
+    });
+  } catch (error) {
+    console.error("Email verification error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+// ─── Resend verification email ────────────────────────────────────────────────
+// @route POST /api/auth/resend-verification
+export const resendVerification = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  const { email } = req.body;
+
+  if (!email) {
+    res.status(400).json({ success: false, message: "Email is required" });
+    return;
+  }
+
+  try {
+    const admin = await Admin.findOne({ email });
+
+    // Always return success — never reveal whether an email exists
+    if (!admin || admin.emailVerified) {
+      res.status(200).json({
+        success: true,
+        message:
+          "If that email exists and is unverified, a new link has been sent.",
+      });
+      return;
+    }
+
+    const verificationToken = crypto.randomBytes(32).toString("hex");
+    const verificationExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    admin.verificationToken = verificationToken;
+    admin.verificationExpiry = verificationExpiry;
+    await admin.save();
+
+    sendVerificationEmail(email, admin.firstName, verificationToken).catch(
+      (err) => console.error("Resend verification failed:", err),
+    );
+
+    res.status(200).json({
+      success: true,
+      message:
+        "If that email exists and is unverified, a new link has been sent.",
+    });
+  } catch (error) {
+    console.error("Resend verification error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+// ─── Login ────────────────────────────────────────────────────────────────────
+// @route POST /api/auth/login
 export const loginAdmin = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
-  const validateAuth = loginSchema.safeParse(req.body);
-
-  if (!validateAuth.success) {
+  const parsed = loginSchema.safeParse(req.body);
+  if (!parsed.success) {
     res.status(400).json({
       success: false,
       message: "Invalid input",
-      errors: validateAuth.error.flatten().fieldErrors,
+      errors: parsed.error.flatten().fieldErrors,
     });
     return;
   }
 
-  const { identifier, password } = validateAuth.data;
+  const { identifier, password } = parsed.data;
 
   try {
     const admin = await Admin.findOne({
@@ -125,29 +211,16 @@ export const loginAdmin = async (
     });
 
     if (!admin || !(await admin.matchPassword(password))) {
+      // Same message for both cases — don't reveal whether account exists
       res.status(401).json({ success: false, message: "Invalid credentials" });
       return;
     }
 
-    if (admin) {
-      admin.AdminSite = [];
-    }
-
-    const { accessToken, refreshToken } = generateTokens(admin._id.toString());
-
-    res.cookie("accessToken", accessToken, {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: isProduction ? "none" : "lax",
-      maxAge: 24 * 60 * 60 * 1000,
-    });
-
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: isProduction ? "none" : "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    const { accessToken, refreshToken } = generateTokens(
+      admin._id.toString(),
+      admin.refreshTokenVersion,
+    );
+    setTokenCookies(res, accessToken, refreshToken);
 
     res.status(200).json({
       success: true,
@@ -158,17 +231,19 @@ export const loginAdmin = async (
         lastName: admin.lastName,
         username: admin.username,
         email: admin.email,
+        emailVerified: admin.emailVerified,
       },
     });
   } catch (error) {
     console.error("Login error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Network or Server error during login",
-    });
+    res
+      .status(500)
+      .json({ success: false, message: "Server error during login" });
   }
 };
 
+// ─── Get current admin ────────────────────────────────────────────────────────
+// @route GET /api/auth/me
 export const getMe = async (req: Request, res: Response): Promise<void> => {
   try {
     const accessToken = req.cookies.accessToken;
@@ -177,35 +252,38 @@ export const getMe = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const decoded = jwt.verify(accessToken, process.env.JWT_SECRET!);
-    const admin = await Admin.findById((decoded as any).id).select("-password");
+    const decoded = jwt.verify(accessToken, process.env.JWT_SECRET!) as {
+      id: string;
+    };
+    const admin = await Admin.findById(decoded.id).select("-password");
 
     if (!admin) {
       res.status(404).json({ success: false, message: "Admin not found" });
       return;
     }
-    if (admin) {
-      admin.AdminSite = [];
-    }
 
     res.status(200).json({
       success: true,
-      message: "Admin details retrieved successfully",
+      message: "Admin details retrieved",
       data: {
         _id: admin._id,
         firstName: admin.firstName,
         lastName: admin.lastName,
         username: admin.username,
         email: admin.email,
+        emailVerified: admin.emailVerified,
       },
     });
-  } catch (err) {
+  } catch {
     res
       .status(401)
       .json({ success: false, message: "Invalid or expired token" });
   }
 };
 
+// ─── Refresh access token (with rotation) ────────────────────────────────────
+// @route POST /api/auth/refresh-token
+// Fix #5: Validates version claim to detect stolen/replayed refresh tokens
 export const refreshAccessToken = async (
   req: Request,
   res: Response,
@@ -220,23 +298,8 @@ export const refreshAccessToken = async (
   try {
     const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET!) as {
       id: string;
+      version?: number;
     };
-    if (!decoded || !decoded.id) {
-      res
-        .status(403)
-        .json({ success: false, message: "Invalid refresh token" });
-      return;
-    }
-    const accessToken = jwt.sign({ id: decoded.id }, process.env.JWT_SECRET!, {
-      expiresIn: "24h",
-    });
-
-    res.cookie("accessToken", accessToken, {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: isProduction ? "none" : "lax",
-      maxAge: 24 * 60 * 60 * 1000,
-    });
 
     const admin = await Admin.findById(decoded.id).select("-password");
 
@@ -245,98 +308,231 @@ export const refreshAccessToken = async (
       return;
     }
 
+    // Version mismatch means this token was already rotated or invalidated.
+    // This catches replay attacks with stolen refresh tokens.
+    if (decoded.version !== admin.refreshTokenVersion) {
+      // Suspicious — clear cookies and force re-login
+      clearTokenCookies(res);
+      res.status(403).json({
+        success: false,
+        message: "Session expired. Please sign in again.",
+      });
+      return;
+    }
+
+    // Rotate: increment version so the old token can never be reused
+    admin.refreshTokenVersion += 1;
+    await admin.save();
+
+    const { accessToken, refreshToken: newRefreshToken } = generateTokens(
+      admin._id.toString(),
+      admin.refreshTokenVersion,
+    );
+    setTokenCookies(res, accessToken, newRefreshToken);
+
     res.status(200).json({
       success: true,
-      message: "Access token refreshed",
+      message: "Token refreshed",
       data: {
         _id: admin._id,
         firstName: admin.firstName,
         lastName: admin.lastName,
         username: admin.username,
         email: admin.email,
+        emailVerified: admin.emailVerified,
       },
     });
   } catch (error) {
+    clearTokenCookies(res);
     res.status(403).json({ success: false, message: "Invalid refresh token" });
   }
 };
 
-// @desc Logout admin
+// ─── Logout ───────────────────────────────────────────────────────────────────
 // @route POST /api/auth/logout
-// @access Public
+// Incrementing refreshTokenVersion invalidates ALL existing refresh tokens
+// for this admin — works as a "logout from all devices" mechanism
 export const logoutAdmin = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
-  res.clearCookie("accessToken", {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite: isProduction ? "none" : "lax",
-  });
+  try {
+    // Invalidate all refresh tokens by bumping the version
+    if (req.cookies.refreshToken) {
+      const decoded = jwt.verify(
+        req.cookies.refreshToken,
+        process.env.JWT_REFRESH_SECRET!,
+      ) as { id: string };
 
-  res.clearCookie("refreshToken", {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite: isProduction ? "none" : "lax",
-  });
+      await Admin.updateOne(
+        { _id: decoded.id },
+        { $inc: { refreshTokenVersion: 1 } },
+      );
+    }
+  } catch {
+    // If token is already invalid/expired, still clear cookies
+  }
 
+  clearTokenCookies(res);
   res.status(200).json({ success: true, message: "Logged out successfully" });
 };
 
-// @desc    Update admin profile (name, username, email, password)
-// @route   PATCH /api/auth/profile
-// @access  Private
+// ─── Forgot password ──────────────────────────────────────────────────────────
+// @route POST /api/auth/forgot-password
+export const forgotPassword = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  const { email } = req.body;
+
+  if (!email) {
+    res.status(400).json({ success: false, message: "Email is required" });
+    return;
+  }
+
+  try {
+    const admin = await Admin.findOne({ email });
+
+    // Always respond the same way — never reveal whether email exists
+    if (!admin) {
+      res.status(200).json({
+        success: true,
+        message: "If that email is registered, a reset link has been sent.",
+      });
+      return;
+    }
+
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const resetExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+    admin.passwordResetToken = resetToken;
+    admin.passwordResetExpiry = resetExpiry;
+    await admin.save();
+
+    sendPasswordResetEmail(email, admin.firstName, resetToken).catch((err) =>
+      console.error("Password reset email failed:", err),
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "If that email is registered, a reset link has been sent.",
+    });
+  } catch (error) {
+    console.error("Forgot password error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+// ─── Reset password ───────────────────────────────────────────────────────────
+// @route POST /api/auth/reset-password
+export const resetPassword = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  const { token, password } = req.body;
+
+  if (!token || !password) {
+    res
+      .status(400)
+      .json({ success: false, message: "Token and password are required" });
+    return;
+  }
+
+  if (password.length < 8) {
+    res.status(400).json({
+      success: false,
+      message: "Password must be at least 8 characters",
+    });
+    return;
+  }
+
+  try {
+    const admin = await Admin.findOne({
+      passwordResetToken: token,
+      passwordResetExpiry: { $gt: new Date() }, // not expired
+    });
+
+    if (!admin) {
+      res.status(400).json({
+        success: false,
+        message: "Reset link is invalid or has expired.",
+      });
+      return;
+    }
+
+    // Hash new password manually to avoid double-hash from pre-save hook
+    const salt = await bcrypt.genSalt(10);
+    const hashed = await bcrypt.hash(password, salt);
+
+    // Use updateOne to bypass the pre-save hook entirely
+    await Admin.updateOne(
+      { _id: admin._id },
+      {
+        $set: {
+          password: hashed,
+          passwordResetToken: null,
+          passwordResetExpiry: null,
+          refreshTokenVersion: admin.refreshTokenVersion + 1, // invalidate all sessions
+        },
+      },
+    );
+
+    // Clear cookies in case they're logged in on another device
+    clearTokenCookies(res);
+
+    res.status(200).json({
+      success: true,
+      message:
+        "Password reset successfully. Please sign in with your new password.",
+    });
+  } catch (error) {
+    console.error("Reset password error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+// ─── Update profile ───────────────────────────────────────────────────────────
+// @route PATCH /api/auth/profile
 export const updateAdmin = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
+  const adminId = req.admin?._id;
+  if (!adminId) {
+    res.status(401).json({ success: false, message: "Unauthorized" });
+    return;
+  }
+
+  const { firstName, lastName, username, email, currentPassword, newPassword } =
+    req.body;
+
   try {
-    const adminId = req.admin?._id;
-    if (!adminId) {
-      res.status(401).json({ success: false, message: "Unauthorized" });
-      return;
-    }
-
-    const {
-      firstName,
-      lastName,
-      username,
-      email,
-      currentPassword,
-      newPassword,
-    } = req.body;
-
     const admin = await Admin.findById(adminId);
     if (!admin) {
       res.status(404).json({ success: false, message: "Admin not found" });
       return;
     }
 
-    // Password change — verify current password first
     if (newPassword) {
       if (!currentPassword) {
-        res.status(400).json({
-          success: false,
-          message: "Current password is required to set a new password",
-        });
+        res
+          .status(400)
+          .json({ success: false, message: "Current password is required" });
         return;
       }
       const isMatch = await admin.matchPassword(currentPassword);
       if (!isMatch) {
-        res.status(400).json({
-          success: false,
-          message: "Current password is incorrect",
-        });
+        res
+          .status(400)
+          .json({ success: false, message: "Current password is incorrect" });
         return;
       }
-      // Use updateOne with a pre-hashed value to bypass the pre-save hook
-      // and avoid double-hashing. The hook only fires on save().
+      // Bypass pre-save hook to avoid double-hash
       const salt = await bcrypt.genSalt(10);
       const hashed = await bcrypt.hash(newPassword, salt);
       await Admin.updateOne({ _id: adminId }, { $set: { password: hashed } });
     }
 
-    // Username uniqueness check
     if (username && username !== admin.username) {
       const taken = await Admin.findOne({ username });
       if (taken) {
@@ -348,7 +544,6 @@ export const updateAdmin = async (
       admin.username = username;
     }
 
-    // Email uniqueness check
     if (email && email !== admin.email) {
       const taken = await Admin.findOne({ email });
       if (taken) {
@@ -357,47 +552,54 @@ export const updateAdmin = async (
           .json({ success: false, message: "Email already in use" });
         return;
       }
+      // Require re-verification when email changes
+      const verificationToken = crypto.randomBytes(32).toString("hex");
+      const verificationExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
       admin.email = email;
+      admin.emailVerified = false;
+      admin.verificationToken = verificationToken;
+      admin.verificationExpiry = verificationExpiry;
+      sendVerificationEmail(email, admin.firstName, verificationToken).catch(
+        (err) => console.error("Re-verification email failed:", err),
+      );
     }
 
     if (firstName) admin.firstName = firstName;
     if (lastName) admin.lastName = lastName;
 
-    // save() only touches non-password fields here
     await admin.save();
 
     res.status(200).json({
       success: true,
-      message: "Profile updated successfully",
+      message: "Profile updated",
       data: {
         _id: admin._id,
         firstName: admin.firstName,
         lastName: admin.lastName,
         username: admin.username,
         email: admin.email,
+        emailVerified: admin.emailVerified,
       },
     });
   } catch (error) {
     console.error("Profile update error:", error);
-    res.status(500).json({ success: false, message: "Internal server error" });
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
-// @desc    Delete admin account and all associated data
-// @route   DELETE /api/auth/account
-// @access  Private
+// @des
+// @route DELETE /api/auth/account
 export const deleteAdmin = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
-  try {
-    const adminId = req.admin?._id;
-    if (!adminId) {
-      res.status(401).json({ success: false, message: "Unauthorized" });
-      return;
-    }
+  const adminId = req.admin?._id;
+  if (!adminId) {
+    res.status(401).json({ success: false, message: "Unauthorized" });
+    return;
+  }
 
-    // Import Site and Feedback models inline to avoid circular deps at top level
+  try {
     const Site = (await import("../models/siteModels.js")).default;
     const Feedback = (await import("../models/feedbackModels.js")).default;
     const Visitor = (await import("../models/visitorModels.js")).default;
@@ -410,28 +612,14 @@ export const deleteAdmin = async (
 
     const siteIds = admin.AdminSite.map((s) => s.siteId);
 
-    // Delete all feedback and visitors for this admin's sites
-    await Feedback.deleteMany({ siteId: { $in: siteIds } });
-    await Visitor.deleteMany({ siteId: { $in: siteIds } });
+    await Promise.all([
+      Feedback.deleteMany({ siteId: { $in: siteIds } }),
+      Visitor.deleteMany({ siteId: { $in: siteIds } }),
+      Site.deleteMany({ siteId: { $in: siteIds } }),
+    ]);
 
-    // Delete site documents
-    await Site.deleteMany({ siteId: { $in: siteIds } });
-
-    // Delete the admin
     await Admin.findByIdAndDelete(adminId);
-
-    // Clear auth cookies
-    const isProduction = process.env.NODE_ENV === "production";
-    res.clearCookie("accessToken", {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: isProduction ? "none" : "lax",
-    });
-    res.clearCookie("refreshToken", {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: isProduction ? "none" : "lax",
-    });
+    clearTokenCookies(res);
 
     res.status(200).json({
       success: true,
@@ -439,6 +627,6 @@ export const deleteAdmin = async (
     });
   } catch (error) {
     console.error("Account deletion error:", error);
-    res.status(500).json({ success: false, message: "Internal server error" });
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };

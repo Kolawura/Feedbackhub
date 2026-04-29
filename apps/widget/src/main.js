@@ -308,7 +308,7 @@ document.addEventListener("DOMContentLoaded", () => {
         sessionStorage.setItem(KEY_SESSION_TRACKED, "1");
       }
     } catch (err) {
-      console.error("FeedbackHub: session tracking failed", err);
+      console.error("FeedbackHub: session tracking failed", err.message || err);
     }
   }
 

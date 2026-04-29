@@ -2,7 +2,8 @@ import { Request, Response } from "express";
 import Feedback from "../models/feedbackModels.js";
 import { feedbackSchema } from "../schema/feedbackSchema.js";
 import Admin from "../models/adminModels.js";
-import { success } from "zod/v4";
+import { sanitizeFeedback } from "../utils/sanitize.js";
+import Visitor from "../models/visitorModels.js";
 
 // @desc    Submit feedback (public)
 // @route   POST /api/feedback
@@ -35,13 +36,21 @@ export const submitFeedback = async (
 
   const visitorName = name && name.trim() !== "" ? name.trim() : "Anonymous";
 
+  // Sanitize all user-provided text fields before storing
+  const clean = sanitizeFeedback({
+    title,
+    description,
+    name: visitorName,
+    userInfo,
+  });
+
   try {
     const feedback = await Feedback.create({
       siteId,
-      title,
-      description,
-      name: visitorName,
-      userInfo,
+      title: clean.title,
+      description: clean.description,
+      name: clean.name,
+      userInfo: clean.userInfo,
       category,
       priority,
       visitorId,
@@ -53,7 +62,6 @@ export const submitFeedback = async (
       data: feedback,
     });
   } catch (error) {
-    console.error("Feedback submission error:", error);
     res.status(500).json({
       success: false,
       message: "Failed to submit feedback",
@@ -85,7 +93,6 @@ export const getAdminFeedbacks = async (req: Request, res: Response) => {
       message: "Feedback fetched successfully",
     });
   } catch (err) {
-    console.error("Error fetching admin feedbacks:", err);
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
@@ -109,7 +116,6 @@ export const getFeedbackForSite = async (
       message: "Feedback fetched successfully",
     });
   } catch (error) {
-    console.error("Fetching feedback error:", error);
     res.status(500).json({
       success: false,
       message: "Failed to fetch feedback",
@@ -120,33 +126,41 @@ export const getFeedbackForSite = async (
 // @desc    Get all feedback by visitorId
 // @route   GET /api/feedback/by-visitor/:visitorId
 // @access  Private (Admin)
-export const getFeedbackByVisitor = async (req: Request, res: Response) => {
+export const getFeedbackByVisitor = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   const { visitorId } = req.params;
 
   if (!visitorId) {
-    res.status(400).json({
-      success: false,
-      message: "visitorId is required",
-      errors: { visitorId: "Visitor ID is required" },
-    });
+    res.status(400).json({ success: false, message: "visitorId is required" });
     return;
   }
 
   try {
-    const feedbacks = await Feedback.find({ visitorId }).sort({
-      createdAt: -1,
-    });
+    // Fetch both feedback and visitor sessions in parallel
+    const [feedbacks, visitorSessions] = await Promise.all([
+      Feedback.find({ visitorId }).sort({ createdAt: -1 }),
+      Visitor.find({ visitorId })
+        .sort({ visitTimestamp: -1 })
+        .select(
+          "siteId sessionId visitTimestamp sessionStart page pagesVisited country city region userInfo",
+        ),
+    ]);
+
     res.status(200).json({
       success: true,
-      data: feedbacks,
-      message: "Feedback fetched successfully",
+      data: {
+        feedbacks,
+        sessions: visitorSessions,
+        totalSessions: visitorSessions.length,
+        totalFeedback: feedbacks.length,
+      },
+      message: "Visitor data fetched successfully",
     });
   } catch (error) {
-    console.error("Error fetching feedback:", error);
-    res.status(500).json({
-      success: false,
-      message: "Server error",
-    });
+    console.error("Error fetching visitor data:", error);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
@@ -262,7 +276,6 @@ export const getDashboardAnalytics = async (req: Request, res: Response) => {
 
     res.json({ success: true, data: { labels, trend, positive, negative } });
   } catch (err) {
-    console.error("Analytics error:", err);
     res.status(500).json({ message: "Server error" });
   }
 };

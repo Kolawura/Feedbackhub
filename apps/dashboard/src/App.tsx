@@ -19,6 +19,9 @@ import ErrorPage from "./Pages/ErrorPage";
 import { useAuth } from "./Hooks/useAuth";
 import NotFoundPage from "./Pages/NotFoundPage";
 import { Settings } from "./Pages/Settings";
+import { ForgotPasswordPage } from "./Pages/ForgetPassword";
+import { ResetPasswordPage } from "./Pages/ResetPassword";
+import { VerifyEmailPage } from "./Pages/VerifyEmail";
 
 const App = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -27,8 +30,6 @@ const App = () => {
 
   const { theme, isSystemDefault, setSystemTheme } = useThemeStore();
   const { loading, error } = useAuth();
-
-  console.log("BASE URL:", import.meta.env.VITE_API_BASE_URL);
 
   useEffect(() => {
     if (theme === "dark") {
@@ -39,8 +40,6 @@ const App = () => {
   }, [theme]);
 
   useEffect(() => {
-    // If the user hasn't set a preference, follow the OS in real time.
-    // This means if they switch their OS from light to dark, the app follows.
     if (!isSystemDefault) return;
     const handleSystemThemeChange = (e: MediaQueryListEvent) => {
       setSystemTheme(e.matches ? "dark" : "light");
@@ -82,6 +81,9 @@ const App = () => {
           <Route path="/login" element={<LoginForm />} />
           <Route path="/register" element={<RegisterForm />} />
           <Route path="/setup" element={<SetupPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/verify-email" element={<VerifyEmailPage />} />
         </Route>
         <Route element={<ProtectedRoute />}>
           <Route

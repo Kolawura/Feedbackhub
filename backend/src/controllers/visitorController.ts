@@ -27,7 +27,6 @@ export const trackVisitor = async (
       data: visitorData,
     });
   } catch (error) {
-    console.error("Error tracking visitor:", error);
     res.status(500).json({
       success: false,
       message: "Failed to track visitor",
@@ -83,7 +82,6 @@ export const appendPageVisit = async (
       message: "Page visit added",
     });
   } catch (error) {
-    console.error("Error appending page visit:", error);
     res.status(500).json({
       success: false,
       message: "Server error",
@@ -273,7 +271,6 @@ export const getAnalytics = async (
       data: { labels, data, label: range ?? "30days" },
     });
   } catch (error) {
-    console.error("Analytics error:", error);
     res
       .status(500)
       .json({ success: false, message: "Failed to fetch analytics" });
@@ -560,7 +557,6 @@ export const getVisitorInsights = async (
       },
     });
   } catch (error) {
-    console.error("Visitor insights error:", error);
     res
       .status(500)
       .json({ success: false, message: "Failed to fetch visitor insights" });

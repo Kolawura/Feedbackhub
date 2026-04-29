@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft,
   Monitor,
@@ -10,15 +11,19 @@ import {
   Tag,
   AlertTriangle,
   Cpu,
+  History,
+  Users,
+  MessageSquare,
 } from "lucide-react";
-import { useFeedbacks } from "../../Hooks/useFeedback";
+import { useFeedbacks, useVisitorHistory } from "../../Hooks/useFeedback";
 import LoadingPage from "../../Pages/LoadingPage";
 import ErrorPage from "../../Pages/ErrorPage";
 import FeedbackNotFound from "./FeedBackNotFound";
-import { MetaRow } from "./MetaRow";
 import { Chip } from "../../utils/chip";
 import { parseBrowser } from "../../utils/parseBrowser";
 import { categoryStyle, priorityStyle } from "../ui/styles";
+import { MetaRow } from "./MetaRow";
+import { VisitorHistoryPanel } from "./VisitorHistoryPanel";
 
 export default function FeedbackDetail() {
   const { id } = useParams();
@@ -75,7 +80,6 @@ export default function FeedbackDetail() {
               })}
             </span>
           </div>
-
           <h1 className="font-display text-xl md:text-2xl lg:text-3xl font-bold text-[var(--text)] mb-3 leading-tight">
             {feedback.title}
           </h1>
@@ -84,9 +88,8 @@ export default function FeedbackDetail() {
           </p>
         </div>
 
-        {/* Two-column info cards */}
+        {/* Submitter + Device */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Submitter */}
           <div className="border border-[var(--border)] bg-[var(--bg-surface)] p-5">
             <p className="font-mono text-xs text-[var(--text-dim)] uppercase tracking-widest mb-4">
               Submitted by
@@ -125,7 +128,6 @@ export default function FeedbackDetail() {
             />
           </div>
 
-          {/* Device & session */}
           <div className="border border-[var(--border)] bg-[var(--bg-surface)] p-5">
             <p className="font-mono text-xs text-[var(--text-dim)] uppercase tracking-widest mb-4">
               Device & session
@@ -151,12 +153,19 @@ export default function FeedbackDetail() {
               value={feedback.siteId}
             />
             <MetaRow
-              icon={<Tag size={12} />}
+              icon={<Users size={12} />}
               label="Visitor ID"
               value={feedback.visitorId}
             />
           </div>
         </div>
+
+        {feedback.visitorId && (
+          <VisitorHistoryPanel
+            visitorId={feedback.visitorId}
+            feedbackId={feedback._id}
+          />
+        )}
 
         {/* Raw user agent */}
         {feedback.userInfo?.browser && (

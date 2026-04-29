@@ -133,6 +133,15 @@ export const LoginForm = () => {
                 </p>
               )}
             </div>
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => navigate("/forgot-password")}
+                className="font-mono text-xs text-[var(--text-dim)] hover:text-[var(--amber)] transition-colors"
+              >
+                Forgot password?
+              </button>
+            </div>
 
             {errors.root && (
               <div className="border border-[var(--red)]/30 bg-[var(--red-bg)] px-4 py-3">

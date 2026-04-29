@@ -17,7 +17,7 @@ export interface Site {
   siteId: string;
   widgetConfig?: WidgetConfig;
 }
-export interface IAdmin extends Document {
+export interface AdminDocument extends Document {
   _id: string;
   firstName: string;
   lastName: string;
@@ -25,21 +25,27 @@ export interface IAdmin extends Document {
   email: string;
   password: string;
   AdminSite: Site[];
+  emailVerified: boolean;
+  verificationToken: string | null;
+  verificationExpiry: Date | null;
+  passwordResetToken: string | null;
+  passwordResetExpiry: Date | null;
+  refreshTokenVersion: number;
   matchPassword: (enteredPassword: string) => Promise<boolean>;
-}
-export interface AdminDocument extends IAdmin, Document {
-  isModified(field: string): boolean;
+  isModified: (field: string) => boolean;
 }
 declare global {
   namespace Express {
     export interface Request {
-      user?: AdminDocument;
+      admin?: AdminDocument | null;
+      user?: AdminDocument | null;
     }
   }
 }
 
 export interface JwtPayload {
   id: string;
+  version?: number;
 }
 
 export interface IPageVisit {
@@ -94,6 +100,7 @@ export interface VisitorData {
   siteId: string;
   visitorId: string;
   visitTimestamp: Date;
+  sessionId?: string;
   sessionStart: Date;
   page: string;
   userInfo: {

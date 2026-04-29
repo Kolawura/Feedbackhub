@@ -33,7 +33,6 @@ export const addNewSite = async (
       sites: admin.AdminSite,
     });
   } catch (error) {
-    console.error("Error adding site:", error);
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
@@ -52,7 +51,6 @@ export const getSiteIds = async (
     }
     res.status(200).json({ success: true, sites: admin.AdminSite });
   } catch (error) {
-    console.error("Error fetching site IDs:", error);
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
@@ -81,7 +79,6 @@ export const validateSiteId = async (
       widgetConfig: site.widgetConfig,
     });
   } catch (error) {
-    console.error("Error validating siteId:", error);
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
@@ -124,7 +121,6 @@ export const renameSite = async (
       site,
     });
   } catch (error) {
-    console.error("Error renaming site:", error);
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
@@ -162,7 +158,6 @@ export const updateSiteConfig = async (
       widgetConfig: site.widgetConfig,
     });
   } catch (error) {
-    console.error("Error updating widget config:", error);
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
@@ -197,7 +192,6 @@ export const deleteSite = async (
       message: "Site and all associated feedback deleted",
     });
   } catch (error) {
-    console.error("Error deleting site:", error);
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };

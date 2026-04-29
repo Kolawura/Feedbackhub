@@ -66,3 +66,28 @@ export interface Site {
   name: string;
   widgetConfig?: WidgetConfig;
 }
+
+export interface VisitorSession {
+  _id: string;
+  siteId: string;
+  sessionId?: string;
+  visitTimestamp: string;
+  sessionStart: string;
+  page: string;
+  country?: string;
+  city?: string;
+  region?: string;
+  userInfo?: {
+    userAgent?: string;
+    language?: string;
+    platform?: string;
+    screenWidth?: number;
+  };
+  pagesVisited: {
+    _id: string;
+    url: string;
+    timestamp: string;
+  }[];
+}
+
+export type Status = "verifying" | "success" | "error";
