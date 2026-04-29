@@ -7,3 +7,12 @@ export function parseBrowser(ua?: string): string {
   if (ua.includes("Opera")) return "Opera";
   return "Other";
 }
+export function parsePlatform(p?: string) {
+  if (!p) return "—";
+  if (/win/i.test(p)) return "Windows";
+  if (/mac/i.test(p)) return "macOS";
+  if (/linux/i.test(p)) return "Linux";
+  if (/android/i.test(p)) return "Android";
+  if (/iphone|ipad|ios/i.test(p)) return "iOS";
+  return p;
+}

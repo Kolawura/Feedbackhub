@@ -6,6 +6,7 @@ import {
   LogOut,
   MessageSquare,
   Settings,
+  Users,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { SidebarProps } from "../../Type";
@@ -31,6 +32,7 @@ const Sidebar = ({ Expand }: SidebarProps) => {
       path: "/feedbacks",
       icon: <MessageSquare size={18} />,
     },
+    { name: "Visitors", path: "/visitors", icon: <Users size={18} /> },
     {
       name: "Analytics",
       path: "/analytics",

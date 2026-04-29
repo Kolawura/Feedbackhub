@@ -11,6 +11,7 @@ const VisitorSchema: Schema = new Schema<IVisitor>(
     siteId: { type: String, required: true },
     visitorId: { type: String, required: true },
     visitTimestamp: { type: Date, required: true },
+    sessionId: { type: String, default: null },
     sessionStart: { type: Date, required: true },
     page: { type: String, required: true },
     userInfo: {
@@ -26,11 +27,16 @@ const VisitorSchema: Schema = new Schema<IVisitor>(
     city: { type: String, default: "" },
     pagesVisited: { type: [PageVisitSchema], default: [] },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
+
+// Speeds up all groupBy-visitorId queries dramatically
+VisitorSchema.index({ siteId: 1, visitTimestamp: -1 });
+VisitorSchema.index({ visitorId: 1 });
+VisitorSchema.index({ siteId: 1, visitorId: 1 });
 
 const Visitor: Model<IVisitor> = mongoose.model<IVisitor>(
   "Visitor",
-  VisitorSchema
+  VisitorSchema,
 );
 export default Visitor;

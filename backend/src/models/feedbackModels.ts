@@ -43,6 +43,7 @@ const feedbackSchema: Schema<IFeedback> = new mongoose.Schema(
     visitorId: {
       type: String,
     },
+    page: { type: String, default: null },
   },
   {
     timestamps: true,

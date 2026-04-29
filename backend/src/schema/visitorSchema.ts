@@ -11,6 +11,7 @@ export const visitorSchema = z.object({
   visitTimestamp: z.coerce.date({
     required_error: "visitTimestamp is required",
   }),
+  sessionId: z.string().optional(),
   sessionStart: z.coerce.date({ required_error: "sessionStart is required" }),
   page: z.string().min(1, "page is required"),
   userInfo: z

@@ -22,6 +22,8 @@ import { Settings } from "./Pages/Settings";
 import { ForgotPasswordPage } from "./Pages/ForgetPassword";
 import { ResetPasswordPage } from "./Pages/ResetPassword";
 import { VerifyEmailPage } from "./Pages/VerifyEmail";
+import { VisitorsPage } from "./Pages/Visitor";
+import { VisitorDetailPage } from "./Pages/VisitorsDetail";
 
 const App = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -97,6 +99,11 @@ const App = () => {
           >
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/feedbacks" element={<Feedback />} />
+            <Route path="/visitors" element={<VisitorsPage />} />
+            <Route
+              path="/visitors/:visitorId"
+              element={<VisitorDetailPage />}
+            />
             <Route path="/feedback/:id" element={<FeedbackDetail />} />
             <Route path="/analytics" element={<Analytics />} />
             <Route path="/settings" element={<Settings />} />

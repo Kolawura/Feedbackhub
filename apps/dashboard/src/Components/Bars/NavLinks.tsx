@@ -6,6 +6,7 @@ import {
   Code2,
   Settings,
   LogOut,
+  Users,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../Hooks/useAuth";
@@ -26,6 +27,7 @@ export const links = [
     path: "/feedbacks",
     icon: <MessageSquare size={16} />,
   },
+  { name: "Visitors", path: "/visitors", icon: <Users size={16} /> },
   {
     name: "Analytics",
     path: "/analytics",

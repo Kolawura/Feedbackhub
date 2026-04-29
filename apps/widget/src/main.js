@@ -186,6 +186,45 @@ document.addEventListener("DOMContentLoaded", () => {
   const GEO_TTL = 24 * 60 * 60 * 1000; // 24h
   const SESSION_TIMEOUT = 30 * 60 * 1000; // 30min inactivity = new session
 
+  // ── One-time migration from old key names ────────────────────────────────
+  // Runs silently on first load after widget update.
+  // Carries the existing visitorId forward so returning visitors keep their ID.
+  // Also migrates geo cache so we don't make an unnecessary IP lookup.
+  // Once migrated, old keys are removed.
+  (function migrateOldKeys() {
+    // Visitor ID: feedbackhub-visitor-id → fh_vid_{SITE_ID}
+    const OLD_VID = "feedbackhub-visitor-id";
+    if (!localStorage.getItem(KEY_VISITOR_ID)) {
+      const oldVid = localStorage.getItem(OLD_VID);
+      if (oldVid) {
+        localStorage.setItem(KEY_VISITOR_ID, oldVid);
+        localStorage.removeItem(OLD_VID);
+      }
+    } else {
+      // New key already exists — just clean up old one if still present
+      localStorage.removeItem(OLD_VID);
+    }
+
+    // Geo cache: feedbackhub-geo → fh_geo
+    const OLD_GEO = "feedbackhub-geo";
+    if (!localStorage.getItem(KEY_GEO)) {
+      const oldGeo = localStorage.getItem(OLD_GEO);
+      if (oldGeo) {
+        localStorage.setItem(KEY_GEO, oldGeo);
+        // Treat migrated geo as fresh enough — set timestamp to now
+        // so we don't immediately re-fetch on first load
+        localStorage.setItem(KEY_GEO_TS, String(Date.now()));
+        localStorage.removeItem(OLD_GEO);
+      }
+    } else {
+      localStorage.removeItem(OLD_GEO);
+    }
+
+    // Remove the old one-time tracked flag — no longer used
+    // (the new system uses per-session flags in sessionStorage instead)
+    localStorage.removeItem("feedbackhub-tracked");
+  })();
+
   // ── Visitor ID: persists forever in localStorage (same device = same ID) ───
   function getOrCreateVisitorId() {
     let id = localStorage.getItem(KEY_VISITOR_ID);
@@ -308,7 +347,7 @@ document.addEventListener("DOMContentLoaded", () => {
         sessionStorage.setItem(KEY_SESSION_TRACKED, "1");
       }
     } catch (err) {
-      console.error("FeedbackHub: session tracking failed", err.message || err);
+      console.error("FeedbackHub: session tracking failed", err);
     }
   }
 
@@ -400,7 +439,12 @@ document.addEventListener("DOMContentLoaded", () => {
     btn.className = "fh-button";
     btn.textContent = cfg.buttonText;
     btn.setAttribute("aria-label", "Open feedback form");
-    btn.style.cssText = `background-color:${cfg.buttonColor};${pos[cfg.position] || pos["bottom-right"]}`;
+    btn.style.cssText = `
+  background-color:${cfg.buttonColor};
+  ${pos[cfg.position] || pos["bottom-right"]}
+  opacity:0;
+  transition:opacity 0.3s ease;
+`;
     document.body.appendChild(btn);
 
     // Overlay + modal
@@ -590,6 +634,7 @@ document.addEventListener("DOMContentLoaded", () => {
               priority: f_pri.value,
               visitorId,
               userInfo,
+              page: window.location.href, // page where feedback was submitted
             }),
           });
 
@@ -617,8 +662,12 @@ document.addEventListener("DOMContentLoaded", () => {
   // ── Boot sequence ───────────────────────────────────────────────────────────
   (async () => {
     const { valid, config } = await validateSite();
-    await trackSession(); // creates a new session doc for each visit
-    interceptNavigation(); // tracks SPA page changes
-    buildWidget(valid, config); // mounts the feedback button + modal
+    await trackSession();
+    interceptNavigation();
+    buildWidget(valid, config);
+    requestAnimationFrame(() => {
+      const btn = document.querySelector(".fh-button");
+      if (btn) btn.style.opacity = "1";
+    });
   })();
 });

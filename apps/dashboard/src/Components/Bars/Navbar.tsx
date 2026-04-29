@@ -1,20 +1,6 @@
 import { useState } from "react";
-import {
-  Logs,
-  Moon,
-  Sun,
-  Search,
-  Menu,
-  X,
-  LayoutDashboard,
-  MessageSquare,
-  ChartNoAxesCombined,
-  Settings,
-  LogOut,
-  Home,
-  Code2,
-} from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Logs, Moon, Sun, Search, Menu, X } from "lucide-react";
+import { Link } from "react-router-dom";
 import { NavbarProps } from "../../Type";
 import { useThemeStore } from "../../Store/useThemeStore";
 import { useAuth } from "../../Hooks/useAuth";

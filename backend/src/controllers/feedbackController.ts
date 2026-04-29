@@ -31,6 +31,7 @@ export const submitFeedback = async (
     userInfo,
     category,
     priority,
+    page,
     visitorId,
   } = validateFeedback.data;
 
@@ -53,6 +54,7 @@ export const submitFeedback = async (
       userInfo: clean.userInfo,
       category,
       priority,
+      page,
       visitorId,
     });
 

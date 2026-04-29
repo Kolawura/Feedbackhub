@@ -50,7 +50,7 @@ export interface JwtPayload {
 
 export interface IPageVisit {
   url: string;
-  timestamp?: Date;
+  timestamp: Date;
 }
 
 interface UserInfo {
@@ -66,6 +66,7 @@ export interface IVisitor extends Document {
   siteId: string;
   visitorId: string;
   visitTimestamp: Date;
+  sessionId?: string;
   sessionStart: Date;
   page: string;
   userInfo?: UserInfo;
@@ -93,26 +94,6 @@ export interface IFeedback extends Document {
   priority: "critical" | "high" | "medium" | "low";
   createdAt?: Date;
   updatedAt?: Date;
+  page?: string;
   visitorId?: object;
-}
-
-export interface VisitorData {
-  siteId: string;
-  visitorId: string;
-  visitTimestamp: Date;
-  sessionId?: string;
-  sessionStart: Date;
-  page: string;
-  userInfo: {
-    userAgent?: string;
-    language?: string;
-    platform?: string;
-    screenWidth?: number;
-    screenHeight?: number;
-    timezoneOffset?: number;
-  };
-  country?: string;
-  region?: string;
-  city?: string;
-  pagesVisited: IPageVisit[];
 }

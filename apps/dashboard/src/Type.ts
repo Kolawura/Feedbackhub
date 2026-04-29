@@ -91,3 +91,74 @@ export interface VisitorSession {
 }
 
 export type Status = "verifying" | "success" | "error";
+
+export interface VisitorSummary {
+  visitorId: string;
+  siteId: string;
+  firstSeen: string;
+  lastSeen: string;
+  country?: string;
+  city?: string;
+  region?: string;
+  userAgent?: string;
+  platform?: string;
+  language?: string;
+  screenWidth?: number;
+  sessionCount: number;
+  totalPageViews: number;
+  feedbackCount: number;
+  entryPage?: string;
+}
+
+export interface PageVisitDetail {
+  url: string;
+  timestamp: string;
+  durationSeconds: number | null;
+  durationLabel: string;
+  isEntryPage: boolean;
+  isExitPage: boolean;
+}
+
+export interface SessionDetail {
+  _id: string;
+  sessionId?: string;
+  visitTimestamp: string;
+  sessionStart: string;
+  country?: string;
+  city?: string;
+  region?: string;
+  userInfo?: {
+    userAgent?: string;
+    language?: string;
+    platform?: string;
+    screenWidth?: number;
+  };
+  totalPages: number;
+  sessionDurationSeconds: number;
+  sessionDurationLabel: string;
+  pagesVisited: PageVisitDetail[];
+  feedbackSubmittedCount: number;
+}
+
+export interface VisitorDetail {
+  visitorId: string;
+  firstSeen: string;
+  lastSeen: string;
+  country?: string;
+  city?: string;
+  region?: string;
+  userInfo?: {
+    userAgent?: string;
+    language?: string;
+    platform?: string;
+    screenWidth?: number;
+  };
+  totalSessions: number;
+  totalPageViews: number;
+  totalFeedback: number;
+  avgSessionDuration: number;
+  avgSessionDurationLabel: string;
+  topPages: { url: string; visits: number }[];
+  sessions: SessionDetail[];
+  feedback: any[];
+}
