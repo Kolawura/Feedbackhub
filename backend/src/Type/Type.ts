@@ -94,6 +94,6 @@ export interface IFeedback extends Document {
   priority: "critical" | "high" | "medium" | "low";
   createdAt?: Date;
   updatedAt?: Date;
-  page?: string;
+  page?: string | null;
   visitorId?: object;
 }

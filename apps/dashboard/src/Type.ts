@@ -38,6 +38,7 @@ export interface Feedback {
     email: string;
   };
   visitorId: string;
+  page?: string | null;
   createdAt: string;
   updatedAt: string;
   votes?: number;

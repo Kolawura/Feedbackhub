@@ -126,6 +126,34 @@ export default function FeedbackDetail() {
               label="Submitted"
               value={new Date(feedback.createdAt).toLocaleString()}
             />
+            {feedback.page && (
+              <div className="flex items-start gap-3 py-3 border-b border-[var(--border)] last:border-0">
+                <span className="text-[var(--text-dim)] mt-0.5 flex-shrink-0">
+                  <Globe size={12} />
+                </span>
+                <div className="min-w-0">
+                  <p className="font-mono text-xs text-[var(--text-dim)] uppercase tracking-widest mb-0.5">
+                    Submitted on
+                  </p>
+                  <a
+                    href={feedback.page}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-mono text-xs text-[var(--amber)] hover:opacity-70 transition-opacity break-all"
+                    title={feedback.page}
+                  >
+                    {(() => {
+                      try {
+                        const u = new URL(feedback.page);
+                        return u.pathname + (u.search || "");
+                      } catch {
+                        return feedback.page;
+                      }
+                    })()}
+                  </a>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="border border-[var(--border)] bg-[var(--bg-surface)] p-5">
