@@ -67,6 +67,7 @@ export const submitFeedback = async (
     res.status(500).json({
       success: false,
       message: "Failed to submit feedback",
+      error: error instanceof Error ? error.message : "Unknown error",
     });
   }
 };
@@ -95,7 +96,13 @@ export const getAdminFeedbacks = async (req: Request, res: Response) => {
       message: "Feedback fetched successfully",
     });
   } catch (err) {
-    res.status(500).json({ success: false, message: "Internal server error" });
+    res
+      .status(500)
+      .json({
+        success: false,
+        message: "Internal server error",
+        error: err instanceof Error ? err.message : "Unknown error",
+      });
   }
 };
 
@@ -162,7 +169,13 @@ export const getFeedbackByVisitor = async (
     });
   } catch (error) {
     console.error("Error fetching visitor data:", error);
-    res.status(500).json({ success: false, message: "Server error" });
+    res
+      .status(500)
+      .json({
+        success: false,
+        message: "Server error",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
   }
 };
 
@@ -278,6 +291,12 @@ export const getDashboardAnalytics = async (req: Request, res: Response) => {
 
     res.json({ success: true, data: { labels, trend, positive, negative } });
   } catch (err) {
-    res.status(500).json({ message: "Server error" });
+    res
+      .status(500)
+      .json({
+        success: false,
+        message: "Server error",
+        error: err instanceof Error ? err.message : "Unknown error",
+      });
   }
 };
