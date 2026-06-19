@@ -30,7 +30,7 @@ export function sanitizeFeedback(data: {
       ? {
           ...data.userInfo,
           email: data.userInfo.email
-            ? email(sanitizeText(data.userInfo.email))
+            ? sanitizeText(data.userInfo.email)
             : undefined,
         }
       : undefined,

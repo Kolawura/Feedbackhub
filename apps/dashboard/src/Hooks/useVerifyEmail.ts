@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { api } from "../lib/axios";
 import { Status } from "../Type";
+import toast from "react-hot-toast";
 
 export const useVerifyEmail = () => {
   const [searchParams] = useSearchParams();
@@ -11,6 +12,10 @@ export const useVerifyEmail = () => {
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showInput, setShowInput] = useState(false);
+
+  // For EmailVerificationBanner component
+  const [dismissed, setDismissed] = useState(false);
+  const [sending, setSending] = useState(false);
 
   useEffect(() => {
     const token = searchParams.get("token");
@@ -45,6 +50,19 @@ export const useVerifyEmail = () => {
     }
   };
 
+  // For EmailVerificationBanner component
+  const resend = async (email: string) => {
+    setSending(true);
+    try {
+      await api.post("/api/auth/resend-verification", { email: email });
+      toast.success("Verification email sent — check your inbox.");
+    } catch {
+      toast.success("If your email is registered, a link has been sent.");
+    } finally {
+      setSending(false);
+    }
+  };
+
   return {
     status,
     message,
@@ -55,5 +73,9 @@ export const useVerifyEmail = () => {
     showInput,
     setShowInput,
     handleResend,
+    resend, // For EmailVerificationBanner component
+    dismissed, // For EmailVerificationBanner component
+    setDismissed, // For EmailVerificationBanner component
+    sending, // For EmailVerificationBanner component
   };
 };

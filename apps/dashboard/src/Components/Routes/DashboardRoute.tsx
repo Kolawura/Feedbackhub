@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "../Bars/Sidebar";
 import Navbar from "../Bars/Navbar";
+import { EmailVerificationBanner } from "../ui/EmailVerificationBanner";
 
 function useIsMd() {
   const [isMd, setIsMd] = useState(() => window.innerWidth >= 768);
@@ -46,6 +47,7 @@ export const DashboardRoute = ({
           NavWidth={navWidth}
         />
         <div className="mt-14">
+          <EmailVerificationBanner />
           <Outlet />
         </div>
       </main>

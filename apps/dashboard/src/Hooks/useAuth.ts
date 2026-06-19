@@ -12,6 +12,7 @@ import {
   logoutRequest,
   registerRequest,
 } from "../lib/auth";
+import { User } from "../Type";
 
 export const useAuth = () => {
   const location = useLocation();
@@ -22,7 +23,7 @@ export const useAuth = () => {
     data: user,
     isLoading,
     error,
-  } = useQuery({
+  } = useQuery<User>({
     queryKey: ["me"],
     queryFn: getMe,
     retry: false,
