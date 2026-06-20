@@ -229,7 +229,7 @@ After setup, add this to the `<head>` of your website:
 
 ```html
 <script
-  src="https://your-widget-host.netlify.app/widget.js"
+  src="https://widgetfb.netlify.app/src/main.js"
   data-site-id="site_your_id_here"
 ></script>
 ```
@@ -240,7 +240,7 @@ After setup, add this to the `<head>` of your website:
 import Script from "next/script";
 
 <Script
-  src="https://your-widget-host.netlify.app/widget.js"
+  src="https://widgetfb.netlify.app/src/main.js"
   data-site-id="site_your_id_here"
   strategy="lazyOnload"
 />;
@@ -255,7 +255,7 @@ export default defineNuxtConfig({
     head: {
       script: [
         {
-          src: "https://your-widget-host.netlify.app/widget.js",
+          src: "https://widgetfb.netlify.app/src/main.js",
           "data-site-id": "site_your_id_here",
           defer: true,
         },

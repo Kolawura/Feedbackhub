@@ -88,7 +88,9 @@ export const getAdminFeedbacks = async (req: Request, res: Response) => {
     const siteIds = admin?.AdminSite.map((s) => s.siteId);
 
     // get feedbacks for these sites
-    const feedbacks = await Feedback.find({ siteId: { $in: siteIds } });
+    const feedbacks = await Feedback.find({ siteId: { $in: siteIds } })
+      .sort({ createdAt: -1 })
+      .populate("visitorId");
 
     res.status(200).json({
       success: true,
@@ -96,13 +98,11 @@ export const getAdminFeedbacks = async (req: Request, res: Response) => {
       message: "Feedback fetched successfully",
     });
   } catch (err) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Internal server error",
-        error: err instanceof Error ? err.message : "Unknown error",
-      });
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: err instanceof Error ? err.message : "Unknown error",
+    });
   }
 };
 
@@ -169,13 +169,11 @@ export const getFeedbackByVisitor = async (
     });
   } catch (error) {
     console.error("Error fetching visitor data:", error);
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Server error",
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
   }
 };
 
@@ -291,12 +289,10 @@ export const getDashboardAnalytics = async (req: Request, res: Response) => {
 
     res.json({ success: true, data: { labels, trend, positive, negative } });
   } catch (err) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Server error",
-        error: err instanceof Error ? err.message : "Unknown error",
-      });
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: err instanceof Error ? err.message : "Unknown error",
+    });
   }
 };

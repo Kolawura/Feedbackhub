@@ -1,29 +1,9 @@
-import nodemailer from "nodemailer";
-import { isProduction } from "./utils.js";
+// backend/src/utils/email.ts
+import * as postmark from "postmark";
 
-const transporter = nodemailer.createTransport(
-  isProduction
-    ? {
-        host: process.env.SMTP_HOST!,
-        port: Number(process.env.SMTP_PORT) || 587,
-        secure: Number(process.env.SMTP_PORT) === 465,
-        auth: {
-          user: process.env.SMTP_USER!,
-          pass: process.env.SMTP_PASS!,
-        },
-      }
-    : {
-        host: "smtp.ethereal.email",
-        port: 587,
-        secure: false,
-        auth: {
-          user: process.env.ETHEREAL_USER || "ethereal_user",
-          pass: process.env.ETHEREAL_PASS || "ethereal_pass",
-        },
-      },
-);
+const client = new postmark.ServerClient(process.env.POSTMARK_API_TOKEN!);
 
-const FROM = process.env.EMAIL_FROM || "FeedbackHub <noreply@feedbackhub.app>";
+const FROM = process.env.EMAIL_FROM || "FeedbackHub <noreply@yourdomain.com>";
 const APP_URL = process.env.APP_URL || "http://localhost:5173";
 
 // ─── Send email verification ──────────────────────────────────────────────────
@@ -34,11 +14,11 @@ export async function sendVerificationEmail(
 ): Promise<void> {
   const url = `${APP_URL}/verify-email?token=${token}`;
 
-  await transporter.sendMail({
-    from: FROM,
-    to,
-    subject: "Verify your FeedbackHub email",
-    html: `
+  await client.sendEmail({
+    From: FROM,
+    To: to,
+    Subject: "Verify your FeedbackHub email",
+    HtmlBody: `
       <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;background:#fff;">
         <h2 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">
           Hi ${firstName}, verify your email
@@ -57,6 +37,8 @@ export async function sendVerificationEmail(
         </p>
       </div>
     `,
+    TextBody: `Hi ${firstName},\n\nVerify your email by visiting:\n${url}\n\nThis link expires in 24 hours.\n\nIf you didn't create a FeedbackHub account, ignore this email.`,
+    MessageStream: "outbound",
   });
 }
 
@@ -68,18 +50,18 @@ export async function sendPasswordResetEmail(
 ): Promise<void> {
   const url = `${APP_URL}/reset-password?token=${token}`;
 
-  await transporter.sendMail({
-    from: FROM,
-    to,
-    subject: "Reset your FeedbackHub password",
-    html: `
+  await client.sendEmail({
+    From: FROM,
+    To: to,
+    Subject: "Reset your FeedbackHub password",
+    HtmlBody: `
       <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;background:#fff;">
         <h2 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">
           Reset your password
         </h2>
         <p style="color:#6b7280;margin:0 0 24px;line-height:1.6;">
           Hi ${firstName}, we received a request to reset your FeedbackHub password.
-          This link expires in <strong>10 minutes</strong>.
+          This link expires in <strong>1 hour</strong>.
         </p>
         <a href="${url}"
           style="display:inline-block;background:#f5a623;color:#0e0e0f;font-weight:600;
@@ -92,5 +74,7 @@ export async function sendPasswordResetEmail(
         </p>
       </div>
     `,
+    TextBody: `Hi ${firstName},\n\nReset your password by visiting:\n${url}\n\nThis link expires in 1 hour.\n\nIf you didn't request this, ignore this email.`,
+    MessageStream: "outbound",
   });
 }

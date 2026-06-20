@@ -183,7 +183,11 @@ export const resendVerification = async (
     });
   } catch (error) {
     console.error("Resend verification error:", error);
-    res.status(500).json({ success: false, message: "Server error" });
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
   }
 };
 
@@ -236,9 +240,11 @@ export const loginAdmin = async (
     });
   } catch (error) {
     console.error("Login error:", error);
-    res
-      .status(500)
-      .json({ success: false, message: "Server error during login" });
+    res.status(500).json({
+      success: false,
+      message: "Server error during login",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
   }
 };
 
@@ -344,7 +350,11 @@ export const refreshAccessToken = async (
     });
   } catch (error) {
     clearTokenCookies(res);
-    res.status(403).json({ success: false, message: "Invalid refresh token" });
+    res.status(403).json({
+      success: false,
+      message: "Invalid refresh token",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
   }
 };
 
@@ -402,6 +412,15 @@ export const forgotPassword = async (
       return;
     }
 
+    // Require email verification before allowing password reset
+    if (!admin.emailVerified) {
+      res.status(400).json({
+        success: false,
+        message: "Please verify your email before resetting your password.",
+      });
+      return;
+    }
+
     const resetToken = crypto.randomBytes(32).toString("hex");
     const resetExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
@@ -419,7 +438,11 @@ export const forgotPassword = async (
     });
   } catch (error) {
     console.error("Forgot password error:", error);
-    res.status(500).json({ success: false, message: "Server error" });
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
   }
 };
 
@@ -487,7 +510,11 @@ export const resetPassword = async (
     });
   } catch (error) {
     console.error("Reset password error:", error);
-    res.status(500).json({ success: false, message: "Server error" });
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
   }
 };
 
@@ -583,7 +610,11 @@ export const updateAdmin = async (
     });
   } catch (error) {
     console.error("Profile update error:", error);
-    res.status(500).json({ success: false, message: "Server error" });
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
   }
 };
 
@@ -627,6 +658,10 @@ export const deleteAdmin = async (
     });
   } catch (error) {
     console.error("Account deletion error:", error);
-    res.status(500).json({ success: false, message: "Server error" });
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
   }
 };
